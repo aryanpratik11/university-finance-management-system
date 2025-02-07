@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funds Data</title>
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <h2>Funds Data</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Fund ID</th>
+                <th>Amount</th>
+                <th>Source</th>
+                <th>Description</th>
+                <th>Date Received</th>
+                <th>Transaction ID</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <% funds.forEach(fund => { %>
+                <tr>
+                    <td><%= fund.fundid %></td>
+                    <td><%= fund.amount %></td>
+                    <td><%= fund.source %></td>
+                    <td><%= fund.description %></td>
+                    <td><%= fund.datereceived %></td>
+                    <td><%= fund.transactionid %></td>
+                    <td>
+                        <button class="receipt-button" data-row='<%= JSON.stringify(fund) %>'>Generate Receipt</button>
+                    </td>
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const receiptButtons = document.querySelectorAll(".receipt-button");
+        receiptButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const rowData = JSON.parse(this.getAttribute("data-row"));
+                generatePDF(rowData);
+            });
+        });
+
+        function generatePDF(data) {
+            // Additional content for the PDF
+            const additionalContent = `
+                University Finance Management
+                
+                Receipt Details
+            `;
+
+            // Combine additional content with funds data
+            const content = additionalContent + JSON.stringify(data);
+
+            // Send a request to the server to generate PDF
+            fetch('/generate-pdf', {
+                method: 'POST', // Use POST method
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content }) // Send combined content in the request body
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                // Create a link element to trigger download
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'receipt.pdf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => console.error('Error generating PDF:', error));
+        }
+
+    });
+</script>
+
+</html>

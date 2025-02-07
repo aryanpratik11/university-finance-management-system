@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Information</title>
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Salary Information</h1>
+        </header>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Salary ID</th>
+                    <th>Staff ID</th>
+                    <th>Staff Name</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Date Added</th>
+                    <th>Department</th>
+                    <th>Transaction ID</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% salaries.forEach(salary=> { %>
+                    <tr>
+                        <td>
+                            <%= salary.salaryid %>
+                        </td>
+                        <td>
+                            <%= salary.staffid %>
+                        </td>
+                        <td>
+                            <%= salary.staff_name %>
+                        </td>
+                        <td>
+                            <%= salary.amount %>
+                        </td>
+                        <td>
+                            <%= salary.description %>
+                        </td>
+                        <td>
+                            <%= salary.dateadded %>
+                        </td>
+                        <td>
+                            <%= salary.departmentname %>
+                        </td>
+                        <td>
+                            <%= salary.transactionid %>
+                        </td>
+                        <td>
+                            <button class="receipt-button" data-row='<%= JSON.stringify(salaries) %>'>Generate
+                                Receipt</button>
+                        </td>
+
+                    </tr>
+                    <% }); %>
+            </tbody>
+        </table>
+    </div>
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const receiptButtons = document.querySelectorAll(".receipt-button");
+        receiptButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const rowData = JSON.parse(this.getAttribute("data-row"));
+                generatePDF(rowData);
+            });
+        });
+
+        function generatePDF(data) {
+            // Additional content for the PDF
+            const additionalContent = `
+                University Finance Management
+                
+                Receipt Details
+            `;
+
+            // Combine additional content with funds data
+            const content = additionalContent + JSON.stringify(data);
+
+            // Send a request to the server to generate PDF
+            fetch('/generate-pdf', {
+                method: 'POST', // Use POST method
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content }) // Send combined content in the request body
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                // Create a link element to trigger download
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'receipt.pdf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => console.error('Error generating PDF:', error));
+        }
+
+    });
+</script>
+
+</html>

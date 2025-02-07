@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Information</title>
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Staff Information</h1>
+        </header>
+
+        <form id="filterForm">
+            <input type="text" id="idFilter" placeholder="Search by Staff ID">
+            <input type="text" id="nameFilter" placeholder="Search by Name">
+            <select id="facultyFilter">
+                <option value="">Select Type</option>
+                <option value="faculty">Faculty</option>
+                <option value="nonfaculty">Non-Faculty</option>
+            </select>
+            <select id="departmentFilter">
+                <option value="">Select Department</option>
+                <option value="CSE">CSE</option>
+                <option value="AIDS">AIDS</option>
+                <!-- Add other department options here -->
+            </select>
+            <button type="submit">Filter</button>
+        </form>
+        <div id="filteredData"></div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Staff ID</th>
+                    <th>Name</th>
+                    <th>Department ID</th>
+                    <th>Department Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% staff.forEach(staff=> { %>
+                    <tr>
+                        <td>
+                            <%= staff.staffid %>
+                        </td>
+                        <td>
+                            <%= staff.staff_name %>
+                        </td>
+                        <td>
+                            <%= staff.departmentid %>
+                        </td>
+                        <td>
+                            <%= staff.department_name %>
+                        </td>
+                    </tr>
+                    <% }); %>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+<script>
+    // Function to handle form submission and filtering
+    function filterStaff() {
+        const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
+        const idFilter = document.getElementById('idFilter').value.toLowerCase();
+        const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
+        const facultyFilter = document.getElementById('facultyFilter').value.toLowerCase();
+
+        // Get all table rows except the header
+        const rows = document.querySelectorAll('tbody tr');
+
+        // Loop through each row and check if it matches the filter criteria
+        rows.forEach(row => {
+            const name = row.cells[1].textContent.toLowerCase();
+            const id = row.cells[0].textContent.toLowerCase();
+            const departmentId = row.cells[2].textContent.toLowerCase();
+            const departmentName = row.cells[3].textContent.toLowerCase();
+            const faculty = parseInt(departmentId); // Assuming departmentId is an integer
+
+            // Check if the row matches the filter criteria
+            const nameMatch = name.includes(nameFilter);
+            const idMatch = id.includes(idFilter);
+            const departmentMatch = departmentName.includes(departmentFilter);
+            const facultyMatch = (facultyFilter === '') || (facultyFilter === 'faculty' && [1, 2, 3].includes(faculty)) || (facultyFilter === 'nonfaculty' && ![1, 2, 3].includes(faculty));
+
+            // If all filter criteria match, show the row, otherwise hide it
+            if (nameMatch && idMatch && departmentMatch && facultyMatch) {
+                row.style.display = 'table-row';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Add event listener to the filter form
+    document.getElementById('filterForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        filterStaff();
+    });
+
+</script>
+
+
+</html>

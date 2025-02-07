@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Funds</title>
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Manage Funds</h1>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#" class="button" onclick="showInsertForm()">Insert Data</a></li>
+                <li><a href="#" class="button" onclick="showDeleteForm()">Delete Data</a></li>
+                <li><a href="#" class="button" onclick="showModifyForm()">Modify Data</a></li>
+                <li><a href="#" class="button" onclick="showRetrieveForm()">Retrieve Data</a></li>
+            </ul>
+        </nav>
+
+        <div id="insertForm" class="form-container" style="display: none;">
+            <h2>Add Funds</h2>
+            <form action="/funds/insert" method="POST">
+                <label for="fundid">Fund ID:</label>
+                <input type="text" id="fundid" name="fundid" required><br><br>
+                <label for="source">Source:</label>
+                <input type="text" id="source" name="source" required><br><br>
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" name="amount" required><br><br>
+                <label for="description">Description:</label>
+                <input type="text" id="description" name="description"><br><br>
+                <label for="date_received">Date Received:</label>
+                <input type="date" id="date_received" name="date_received" required><br><br>
+                <label for="transactionid">Transaction ID:</label>
+                <input type="number" id="transactionid" name="transactionid" required><br><br>
+                <button type="submit">Add Fund</button>
+            </form>
+        </div>
+        <div id="deleteForm" class="form-container" style="display: none;">
+            <h2>Delete Fund Data</h2>
+            <form action="/funds/delete" method="POST">
+                <label for="fundid">Fund ID:</label>
+                <input type="text" id="fundid" name="fundid" required><br><br>
+                <button type="submit">Delete Fund</button>
+            </form>
+        </div>
+
+        <div id="modifyForm" class="form-container" style="display: none;">
+            <h2>Modify Fund Data</h2>
+            <form action="/funds/modify" method="POST">
+                <label for="fund_id">Fund ID:</label>
+                <input type="text" id="fund_id" name="fund_id" required><br><br>
+                <label for="source">Source:</label>
+                <input type="text" id="source" name="source" required><br><br>
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" name="amount" required><br><br>
+                <label for="description">Description:</label>
+                <input type="text" id="description" name="description"><br><br>
+                <label for="date_received">Date Received:</label>
+                <input type="date" id="date_received" name="date_received" required><br><br>
+                <label for="transactionid">Transaction ID:</label>
+                <input type="number" id="transactionid" name="transactionid" required><br><br>
+                <button type="submit">Modify Fund</button>
+            </form>
+        </div>
+
+        <div id="retrieveForm" class="form-container" style="display: none;">
+            <h2>Retrieve Fund Data</h2>
+            <form action="/funds/retrieve" method="POST">
+                <label for="fund_id">Fund ID:</label>
+                <input type="text" id="fund_id" name="fund_id" required><br><br>
+                <button type="submit">Retrieve Fund</button>
+            </form>
+            <br>
+            <form action="/funds/retrieveAll" method="GET">
+                <button type="submit">Retrieve All Data</button>
+            </form>
+        </div>
+        
+    </div>
+
+    <script>
+        function showInsertForm() {
+            hideAllForms();
+            document.getElementById('insertForm').style.display = 'block';
+            alignButtonsHorizontally();
+        }
+
+        function showDeleteForm() {
+            hideAllForms();
+            document.getElementById('deleteForm').style.display = 'block';
+            alignButtonsHorizontally();
+        }
+
+        function showModifyForm() {
+            hideAllForms();
+            document.getElementById('modifyForm').style.display = 'block';
+            alignButtonsHorizontally();
+        }
+
+        function showRetrieveForm() {
+            hideAllForms();
+            document.getElementById('retrieveForm').style.display = 'block';
+            alignButtonsHorizontally();
+        }
+
+        function hideAllForms() {
+            var forms = document.getElementsByClassName('form-container');
+            for (var i = 0; i < forms.length; i++) {
+                forms[i].style.display = 'none';
+            }
+        }
+
+        function alignButtonsHorizontally() {
+            var nav = document.querySelector('nav ul');
+            nav.style.display = 'flex';
+            nav.style.flexDirection = 'row';
+        }
+    </script>
+</body>
+
+</html>

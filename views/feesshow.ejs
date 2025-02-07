@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Details</title>
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Fee Details</h1>
+        </header>
+
+        <table id="feeTable">
+            <thead>
+                <tr>
+                    <th>Fee ID</th>
+                    <th>Student ID</th>
+                    <th>Student Name</th>
+                    <th>Student Department</th>
+                    <th>Amount</th>
+                    <th>Fee Type</th>
+                    <th>Description</th>
+                    <th>Date Added</th>
+                    <th>Transaction ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% fees.forEach(fee=> { %>
+                    <tr>
+                        <td>
+                            <%= fee.feeid %>
+                        </td>
+                        <td>
+                            <%= fee.studentid %>
+                        </td>
+                        <td>
+                            <%= fee.student_name %>
+                        </td>
+                        <td>
+                            <%= fee.student_department %>
+                        </td>
+                        <td>
+                            <%= fee.amount %>
+                        </td>
+                        <td>
+                            <%= fee.feetype %>
+                        </td>
+                        <td>
+                            <%= fee.description %>
+                        </td>
+                        <td>
+                            <%= fee.dateadded %>
+                        </td>
+                        <td>
+                            <%= fee.transactionid %>
+                        </td>
+                        <td>
+                            <button class="receipt-button" data-row='<%= JSON.stringify(fee) %>'>Generate
+                                Receipt</button>
+                        </td>
+
+                    </tr>
+                    <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const receiptButtons = document.querySelectorAll(".receipt-button");
+    receiptButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            const rowData = JSON.parse(this.getAttribute("data-row"));
+            generatePDF(rowData);
+        });
+    });
+
+    function generatePDF(data) {
+    // Additional content for the PDF
+    const additionalContent = `
+        University Finance Management
+
+        Receipt Details
+    `;
+
+    // Combine additional content with fee details data
+    const content = additionalContent + JSON.stringify(data);
+
+    // Send a request to the server to generate PDF
+    fetch('/generate-pdf', {
+        method: 'POST', // Use POST method
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content }) // Send combined content in the request body
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        // Create a link element to trigger download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'receipt.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => console.error('Error generating PDF:', error));
+}
+
+});
+
+</script>
+
+</html>

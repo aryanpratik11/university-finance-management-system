@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Data</title>
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <header>
+        <h2>Student Data</h2>
+    </header>
+    <form id="filterForm">
+        <input type="text" id="nameFilter" placeholder="Search by name">
+        <input type="text" id="idFilter" placeholder="Search by ID">
+        <select id="batchFilter">
+            <option value="">Select Batch</option>
+            <option value="2019">2019</option>
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+        </select>
+        <select id="departmentFilter">
+            <option value="">Select Department</option>
+            <option value="CSE">CSE</option>
+            <option value="AIDS">AIDS</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+    <div id="filteredData"></div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Batch Number</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% students.forEach(student=> { %>
+                <tr>
+                    <td>
+                        <%= student.studentid %>
+                    </td>
+                    <td>
+                        <%= student.name %>
+                    </td>
+                    <td>
+                        <%= student.department %>
+                    </td>
+                    <td>
+                        <%= student.batchnumber %>
+                    </td>
+                </tr>
+                <% }); %>
+        </tbody>
+    </table>
+</body>
+
+
+<script>
+    // Function to handle form submission and filtering
+function filterStudents() {
+    const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
+    const idFilter = document.getElementById('idFilter').value.toLowerCase();
+    const batchFilter = document.getElementById('batchFilter').value.toLowerCase();
+    const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
+
+    // Get all table rows except the header
+    const rows = document.querySelectorAll('tbody tr');
+
+    // Loop through each row and check if it matches the filter criteria
+    rows.forEach(row => {
+        const name = row.cells[1].textContent.toLowerCase();
+        const id = row.cells[0].textContent.toLowerCase();
+        const department = row.cells[2].textContent.toLowerCase();
+        const batch = row.cells[3].textContent.toLowerCase();
+
+        // Check if the row matches the filter criteria
+        const nameMatch = name.includes(nameFilter);
+        const idMatch = id.includes(idFilter);
+        const departmentMatch = department.includes(departmentFilter);
+        const batchMatch = batch.includes(batchFilter);
+
+        // If all filter criteria match, show the row, otherwise hide it
+        if (nameMatch && idMatch && departmentMatch && batchMatch) {
+            row.style.display = 'table-row';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Add event listener to the filter form
+document.getElementById('filterForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    filterStudents();
+});
+
+</script>
+
+</html>

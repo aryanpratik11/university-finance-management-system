@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Finance App</title>
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">
+    </link>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <header>
+            <h1>Welcome to College Finance App</h1>
+        </header>
+
+        <div class="cont">
+            <div class="data-box" style="background: linear-gradient(to bottom right, #f9f9f9, #dcdcdc);">
+                <p>Students: <%= student_count %>
+                </p>
+            </div>
+            <div class="data-box" style="background: linear-gradient(to bottom right, #f5f5f5, #bdbdbd);">
+                <p>Faculties: <%= faculty_count %>
+                </p>
+            </div>
+            <div class="data-box" style="background: linear-gradient(to bottom right, #f0f0f0, #a9a9a9);">
+                <p>Staffs: <%= other_staff_count %>
+                </p>
+            </div>
+            <div class="data-box" style="background: linear-gradient(to bottom right, #eaeaea, #979797);">
+                <p>Total Expenses: <%= total_expenses %>
+                </p>
+            </div>
+            <div class="data-box" style="background: linear-gradient(to bottom right, #e5e5e5, #858585);">
+                <p>Total Revenue: <%= total_revenue %>
+                </p>
+            </div>
+        </div>
+
+        <bd>
+            <nav>
+                <ul>
+                    <li><a href="/students" class="button">Manage Students</a></li>
+                    <li><a href="/fees" class="button">Manage Fees</a></li>
+                    <li><a href="/funds" class="button">Manage Funds</a></li>
+                    <li><a href="/transactions" class="button">Manage Transactions</a></li>
+                    <li><a href="/staff" class="button">Manage Staff</a></li>
+                    <li><a href="/salaries" class="button">Manage Salaries</a></li>
+                    <li><a href="/departments" class="button">Manage Departments</a></li>
+                    <li><a href="/departmentExpenses" class="button">Manage Department Expenses</a></li>
+                </ul>
+            </nav>
+            <img src="/images/graphic-cartoon-character-financial-management-vector-35150854-removebg-preview.png">
+        </bd>
+
+    </div>
+    
+</body>
+
+</html>

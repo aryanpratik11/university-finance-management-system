@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Salaries</title>
+    <link href="/styles/main.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Manage Salaries</h1>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#" class="button" onclick="showInsertForm()">Insert Data</a></li>
+                <li><a href="#" class="button" onclick="showDeleteForm()">Delete Data</a></li>
+                <li><a href="#" class="button" onclick="showModifyForm()">Modify Data</a></li>
+                <li><a href="#" class="button" onclick="showRetrieveForm()">Retrieve Data</a></li>
+            </ul>
+        </nav>
+
+        <div id="insertForm" class="form-container" style="display: none;">
+            <h2>Insert Salary Data</h2>
+            <form action="/salaries/insert" method="POST">
+                <label for="salaryid">Salary ID:</label>
+                <input type="number" id="salaryid" name="salaryid" required><br><br>
+                <label for="staffid">Staff ID:</label>
+                <input type="number" id="staffid" name="staffid" required><br><br>
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" name="amount" required><br><br>
+                <label for="description">Description:</label>
+                <input type="text" id="description" name="description" required><br><br>
+                <label for="dateadded">Date Added:</label>
+                <input type="date" id="dateadded" name="dateadded" required><br><br>
+                <label for="transactionid">Transaction ID:</label>
+                <input type="number" id="transactionid" name="transactionid" required><br><br>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+
+        <div id="deleteForm" class="form-container" style="display: none;">
+            <h2>Delete Salary Data</h2>
+            <form action="/salaries/delete" method="POST">
+                <label for="salaryid">Salary ID:</label>
+                <input type="number" id="salaryid" name="salaryid" required><br>
+                <button type="submit">Delete</button>
+            </form>
+        </div>
+
+        <div id="modifyForm" class="form-container" style="display: none;">
+            <h2>Modify Salary Data</h2>
+            <form action="/salaries/modify" method="POST">
+                <label for="salaryid">Salary ID:</label>
+                <input type="number" id="salaryid" name="salaryid" required><br><br>
+                <label for="staffid">Staff ID:</label>
+                <input type="number" id="staffid" name="staffid" required><br><br>
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" name="amount" required><br><br>
+                <label for="description">Description:</label>
+                <input type="text" id="description" name="description" required><br><br>
+                <label for="dateadded">Date Added:</label>
+                <input type="date" id="dateadded" name="dateadded" required><br><br>
+                <label for="transactionid">Transaction ID:</label>
+                <input type="number" id="transactionid" name="transactionid" required><br><br>
+                <button type="submit">Modify</button>
+            </form>
+        </div>
+
+        <div id="retrieveForm" class="form-container" style="display: none;">
+            <h2>Retrieve Salary Data</h2>
+            <form action="/salaries/retrieve" method="POST">
+                <label for="staffid">Staff ID:</label>
+                <input type="number" id="staffid" name="staffid" required><br><br>
+                <button type="submit">Retrieve</button>
+            </form>
+            <br>
+            <form action="/salaries/retrieveAll" method="GET">
+                <button type="submit">Retrieve All Data</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showInsertForm() {
+            hideAllForms();
+            document.getElementById('insertForm').style.display = 'block';
+            arrangeButtonsHorizontally();
+        }
+
+        function showDeleteForm() {
+            hideAllForms();
+            document.getElementById('deleteForm').style.display = 'block';
+            arrangeButtonsHorizontally();
+        }
+
+        function showModifyForm() {
+            hideAllForms();
+            document.getElementById('modifyForm').style.display = 'block';
+            arrangeButtonsHorizontally();
+        }
+
+        function showRetrieveForm() {
+            hideAllForms();
+            document.getElementById('retrieveForm').style.display = 'block';
+            arrangeButtonsHorizontally();
+        }
+
+        function hideAllForms() {
+            var forms = document.getElementsByClassName('form-container');
+            for (var i = 0; i < forms.length; i++) {
+                forms[i].style.display = 'none';
+            }
+        }
+        function arrangeButtonsHorizontally() {
+        var nav = document.querySelector('nav ul');
+        nav.style.display = 'flex';
+        nav.style.flexDirection = 'row';
+    }
+    </script>
+</body>
+
+</html>
