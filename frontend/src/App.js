@@ -7,12 +7,14 @@ import Login from "./pages/Login";
 function App() {
   return (
     <Router>
-      <Nav />
-      <div className="p-4">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-        </Routes>
+      <div className="min-h-screen flex flex-col">
+        <main className="flex-1 w-full">
+          <Nav />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   );
