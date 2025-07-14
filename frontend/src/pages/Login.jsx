@@ -1,8 +1,10 @@
-import { useState } from "react";
-import api from "../context/authContext.jsx";
+import { useContext, useState } from "react";
+import { AuthContext } from "../context/authContext.jsx";
+import api from "../api.js";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Login() {
+  const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -10,14 +12,28 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     try {
       const res = await api.post("/users/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      navigate("/");
+
+      login(res.data.user, res.data.token);
+
+      if (res.data.user.role === "admin") {
+        navigate("/admin");
+      } else if (res.data.user.role === "finance_manager") {
+        navigate("/finance-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
-      setError(err.response?.data?.error || "Login failed");
+      console.error(err);
+      setError(
+        err.response?.data?.error || "Login failed. Please check credentials."
+      );
     }
   };
+
+
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
