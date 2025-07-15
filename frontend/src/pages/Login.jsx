@@ -21,9 +21,15 @@ export default function Login() {
       if (res.data.user.role === "admin") {
         navigate("/admin");
       } else if (res.data.user.role === "finance_manager") {
-        navigate("/finance-dashboard");
+        navigate("/finance-manager");
       } else if (res.data.user.role === "faculty") {
         navigate("/faculty");
+      } else if (res.data.user.role === "staff") {
+        navigate("/staff");
+      } else if (res.data.user.role === "student") {
+        navigate("/student");
+      } else if (res.data.user.role === "hod") {
+        navigate("/hod");
       } else {
         navigate("/dashboard");
       }

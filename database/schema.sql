@@ -75,8 +75,38 @@ CREATE TABLE expenses (
 CREATE TABLE payroll (
   id SERIAL PRIMARY KEY,
   staff_id INTEGER REFERENCES users(id),
+  role VARCHAR(50) NOT NULL,
   month VARCHAR(15),
   amount NUMERIC(12,2) NOT NULL,
   paid_on DATE,
   processed_by INTEGER REFERENCES users(id)
+);
+
+CREATE TABLE fees (
+  id SERIAL PRIMARY KEY,
+  student_id INTEGER REFERENCES users(id),
+  description TEXT,
+  amount NUMERIC(12,2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pending', -- pending, paid, overdue
+  due_date DATE,
+  paid_at TIMESTAMP
+);
+
+CREATE TABLE student_aid_applications (
+  id SERIAL PRIMARY KEY,
+  student_id INTEGER REFERENCES users(id),
+  aid_type VARCHAR(50),            -- e.g., scholarship, fee waiver
+  amount_requested NUMERIC(12,2),
+  description TEXT,
+  status VARCHAR(20) DEFAULT 'pending', -- pending, approved, rejected
+  submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  reviewed_at TIMESTAMP
+);
+
+CREATE TABLE aid_disbursements (
+  id SERIAL PRIMARY KEY,
+  student_id INTEGER REFERENCES users(id),
+  aid_application_id INTEGER REFERENCES student_aid_applications(id),
+  amount NUMERIC(12,2) NOT NULL,
+  disbursed_at TIMESTAMP
 );

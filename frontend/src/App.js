@@ -7,6 +7,10 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Users from "./pages/Users";
 import Invoices from "./pages/Invoices";
 import FacultyDashboard from "./pages/FacultyDashboard";
+import FinManDashboard from "./pages/FinManDashboard";
+import StaffDashboard from "./pages/StaffDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
+import DepartmentDashboard from "./pages/DepartmentDashboard";
 
 function App() {
   return (
@@ -21,6 +25,10 @@ function App() {
             <Route path="/admin/users" element={<Users />} />
             <Route path="/admin/invoices" element={<Invoices />} />
             <Route path="/faculty" element={<FacultyDashboard />} />
+            <Route path="/finance-manager" element={<FinManDashboard />} />
+            <Route path="/staff" element={<StaffDashboard />} />
+            <Route path="/student" element={<StudentDashboard />} />
+             <Route path="/hod" element={<DepartmentDashboard />} />
           </Routes>
         </main>
       </div>

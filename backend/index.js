@@ -5,6 +5,10 @@ import cors from "cors";
 import userRouter from "./routes/userRouter.js";
 import adminRouter from "./routes/adminRouter.js";
 import facultyRouter from "./routes/facultyRouter.js";
+import finmanRouter from "./routes/finmanRouter.js";
+import staffRouter from "./routes/staffRouter.js";
+import studentRouter from "./routes/studentRouter.js";
+import departRouter from "./routes/departmentRouter.js";
 
 dotenv.config();
 
@@ -21,6 +25,11 @@ app.use(express.json());
 app.use("/api/users", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/faculty", facultyRouter);
+app.use("/api/finance-manager", finmanRouter);
+app.use("/api/staff", staffRouter);
+app.use("/api/student", studentRouter);
+app.use("/api/student", studentRouter);
+app.use("/api/hod", departRouter);
 
 connectDB().then(() => {
     app.listen(PORT, () => {
