@@ -1,49 +1,114 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/authContext";
+import { FaUserCircle } from "react-icons/fa";
 
 export default function Nav() {
+    const { isAuthenticated, logout, user } = useContext(AuthContext);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
     return (
         <nav className="bg-gradient-to-r from-gray-100 to-gray-200 border-b border-gray-300 shadow-sm">
             <div className="max-w-7xl mx-auto px-4">
-                <div className="flex h-20 items-center">
+                <div className="flex justify-between h-20 items-center">
                     {/* Logo with glow effect on hover */}
-                    <div className="flex-shrink-0 flex items-center ">
-                        <Link
-                            to="/"
-                            className="flex items-center hover:scale-105 transition-transform duration-200"
-                        >
+                    <div className="flex-shrink-0 flex items-center">
+                        <Link to="/" className="flex items-center hover:scale-105 transition-transform duration-200">
                             {/* Logo Image */}
                             <img
                                 src="AcadmiVault UFM header.png"
-                                alt=""
-                                className="h-14 w-14 object-contain"  // Square container
+                                alt="AcadmiVault Logo"
+                                className="h-14 w-14 object-contain"
                             />
 
                             {/* Text Group */}
-                            <div className="flex flex-col leading-tight">
+                            <div className="flex flex-col leading-tight ml-2">
                                 <span className="text-xl font-bold text-blue-900">AcadmiVault UFM</span>
                                 <span className="text-xs font-medium text-gray-600">University Finance Management Webapp</span>
                             </div>
                         </Link>
                     </div>
 
-                    {/* Desktop Menu with elegant hover effects */}
-                    <div className="hidden md:flex space-x-1 items-center">
-                        <NavLink to="/dashboard" label="Dashboard" />
-                        <NavLink to="/students" label="Students" />
-                        <NavLink to="/fees" label="Fees" />
-                        <NavLink to="/departments" label="Departments" />
-                        <NavLink to="/expenses" label="Expenses" />
-                        <NavLink to="/payroll" label="Payroll" />
+
+                    {/* Account Dropdown */}
+                    <div className="hidden md:block relative ml-4">
+                        <button
+                            onClick={toggleDropdown}
+                            className="flex items-center text-gray-700 hover:text-blue-600 focus:outline-none"
+                        >
+                            <FaUserCircle className="mr-1 text-xl" />
+                            <span className="font-medium">Account</span>
+                        </button>
+                        {dropdownOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-50">
+                                {isAuthenticated ? (
+                                    <>
+                                        <Link
+                                            to="/profile"
+                                            onClick={() => setDropdownOpen(false)}
+                                            className="block px-4 py-2 hover:bg-gray-100 text-gray-700"
+                                        >
+                                            Profile
+                                        </Link>
+                                        <button
+                                            onClick={() => {
+                                                setDropdownOpen(false);
+                                                if (user.role === "admin") {
+                                                    navigate("/admin");
+                                                } else if (user.role === "finance_manager") {
+                                                    navigate("/finance-dashboard");
+                                                } else if (user.role === "faculty") {
+                                                    navigate("/faculty");
+                                                } else {
+                                                    navigate("/dashboard");
+                                                }
+                                            }}
+                                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700"
+                                        >
+                                            Dashboard
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                logout();
+                                                setDropdownOpen(false);
+                                                navigate("/");
+                                            }}
+                                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700"
+                                        >
+                                            Logout
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Link
+                                            to="/login"
+                                            onClick={() => setDropdownOpen(false)}
+                                            className="block px-4 py-2 hover:bg-gray-100 text-gray-700"
+                                        >
+                                            Login
+                                        </Link>
+                                        <Link
+                                            to="/contact"
+                                            onClick={() => setDropdownOpen(false)}
+                                            className="block px-4 py-2 hover:bg-gray-100 text-gray-700"
+                                        >
+                                            Contact Admin
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Mobile Menu Button with amber accent */}
+                    {/* Mobile Menu Button */}
                     <div className="flex md:hidden items-center">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
-                            className="text-amber-400 hover:text-amber-300 focus:outline-none p-2 rounded-full hover:bg-gray-800 transition-all duration-300"
+                            className="text-blue-600 hover:text-blue-800 focus:outline-none p-2 rounded-full hover:bg-gray-200 transition-all duration-300"
                         >
                             <svg
                                 className="h-8 w-8"
@@ -72,15 +137,50 @@ export default function Nav() {
                 </div>
             </div>
 
-            {/* Mobile Menu with dark gradient */}
+            {/* Mobile Menu */}
             {isOpen && (
-                <div className="md:hidden px-2 pt-2 pb-4 space-y-2 bg-gradient-to-b from-gray-900 to-gray-800">
-                    <MobileNavLink to="/dashboard" label="Dashboard" onClose={() => setIsOpen(false)} />
-                    <MobileNavLink to="/students" label="Students" onClose={() => setIsOpen(false)} />
-                    <MobileNavLink to="/fees" label="Fees" onClose={() => setIsOpen(false)} />
-                    <MobileNavLink to="/departments" label="Departments" onClose={() => setIsOpen(false)} />
-                    <MobileNavLink to="/expenses" label="Expenses" onClose={() => setIsOpen(false)} />
-                    <MobileNavLink to="/payroll" label="Payroll" onClose={() => setIsOpen(false)} />
+                <div className="md:hidden px-2 pt-2 pb-4 space-y-2 bg-white border-t border-gray-200">
+
+                    {/* Mobile Account Links */}
+                    <div className=" border-gray-200 pt-2 mt-2">
+                        {isAuthenticated ? (
+                            <>
+                                <MobileNavLink to="/profile" label="Profile" onClose={() => setIsOpen(false)} />
+                                <button
+                                    onClick={() => {
+                                        setDropdownOpen(false);
+                                        if (user.role === "admin") {
+                                            navigate("/admin");
+                                        } else if (user.role === "finance_manager") {
+                                            navigate("/finance-dashboard");
+                                        } else if (user.role === "faculty") {
+                                            navigate("/faculty");
+                                        } else {
+                                            navigate("/dashboard");
+                                        }
+                                    }}
+                                    className="block w-full text-left px-6 py-3 rounded-lg font-medium text-lg text-gray-700  hover:text-blue-600 hover:bg-gray-100 transition-all"
+                                >
+                                    Dashboard
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        logout();
+                                        setIsOpen(false);
+                                        navigate("/");
+                                    }}
+                                    className="block w-full text-left px-6 py-3 rounded-lg font-medium text-lg text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition-all"
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <MobileNavLink to="/login" label="Login" onClose={() => setIsOpen(false)} />
+                                <MobileNavLink to="/contect" label="Contact Admin" onClose={() => setIsOpen(false)} />
+                            </>
+                        )}
+                    </div>
                 </div>
             )}
         </nav>
@@ -92,21 +192,21 @@ function NavLink({ to, label }) {
     return (
         <Link
             to={to}
-            className="relative text-gray-300 hover:text-white px-4 py-2 rounded-md font-medium text-lg transition-all duration-300 group"
+            className="relative text-gray-700 hover:text-blue-600 px-4 py-2 rounded-md font-medium text-lg transition-all duration-300 group"
         >
             {label}
-            <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-amber-400 group-hover:w-4/5 group-hover:left-[10%] transition-all duration-300"></span>
+            <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-600 group-hover:w-4/5 group-hover:left-[10%] transition-all duration-300"></span>
         </Link>
     );
 }
 
-/* Mobile NavLink with subtle glow */
+/* Mobile NavLink */
 function MobileNavLink({ to, label, onClose }) {
     return (
         <Link
             to={to}
             onClick={onClose}
-            className="block text-gray-300 hover:text-white px-6 py-3 rounded-lg font-medium text-lg transition-all duration-300 hover:bg-gray-800 hover:pl-8 hover:drop-shadow-[0_0_6px_rgba(251,191,36,0.3)]"
+            className="block text-gray-700 hover:text-blue-600 px-6 py-3 rounded-lg font-medium text-lg transition-all duration-300 hover:bg-gray-100"
         >
             {label}
         </Link>

@@ -19,6 +19,7 @@ export default function UserFormModal({ user, onClose, onSuccess }) {
     const roles = [
         { value: "admin", label: "Admin" },
         { value: "finance_manager", label: "Finance Manager" },
+        { value: "hod", label: "Department Head" },
         { value: "student", label: "Student" },
         { value: "staff", label: "Staff" },
         { value: "faculty", label: "Faculty" }
@@ -54,7 +55,7 @@ export default function UserFormModal({ user, onClose, onSuccess }) {
 
         try {
             if (isEdit) {
-                await api.put(`/admin/users/${user.id}`, {
+                await api.put(`/admin/upuser/${user.id}`, {
                     name: form.name,
                     email: form.email,
                     role: form.role,
@@ -66,7 +67,7 @@ export default function UserFormModal({ user, onClose, onSuccess }) {
                     }),
                 });
             } else {
-                await api.post("/users/register", {
+                await api.post("/admin/adduser", {
                     name: form.name,
                     email: form.email,
                     password: form.password,

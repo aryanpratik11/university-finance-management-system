@@ -4,6 +4,7 @@ import connectDB from "./config/db.js";
 import cors from "cors";
 import userRouter from "./routes/userRouter.js";
 import adminRouter from "./routes/adminRouter.js";
+import facultyRouter from "./routes/facultyRouter.js";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 
 app.use("/api/users", userRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/faculty", facultyRouter);
 
 connectDB().then(() => {
     app.listen(PORT, () => {

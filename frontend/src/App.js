@@ -5,6 +5,8 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import Users from "./pages/Users";
+import Invoices from "./pages/Invoices";
+import FacultyDashboard from "./pages/FacultyDashboard";
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<Users />} />
+            <Route path="/admin/invoices" element={<Invoices />} />
+            <Route path="/faculty" element={<FacultyDashboard />} />
           </Routes>
         </main>
       </div>

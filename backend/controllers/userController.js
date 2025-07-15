@@ -24,6 +24,16 @@ export const loginUser = async (req, res) => {
     }
 };
 
+export const logoutUser = async (req, res) => {
+    try {
+        res.clearCookie("token");
+        return res.status(200).json({ message: "Logged Out" })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "logout error" });
+    }
+};
+
 export const registerUser = async (req, res) => {
     const { name, email, password, role, department_id, studentData } = req.body;
 

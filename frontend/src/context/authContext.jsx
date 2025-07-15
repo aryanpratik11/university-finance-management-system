@@ -3,37 +3,37 @@ import { createContext, useState, useEffect } from "react";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [authState, setAuthState] = useState({
-    user: null,
-    token: null,
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
 
-  const login = (user, token) => {
-    setAuthState({ user, token });
-    localStorage.setItem("authUser", JSON.stringify(user));
-    localStorage.setItem("authToken", token);
-  };
+  const serverUrl = "http://localhost:5000";
 
-  const logout = () => {
-    setAuthState({ user: null, token: null });
-    localStorage.removeItem("authUser");
-    localStorage.removeItem("authToken");
-  };
-
-  // Load persisted state on mount
+  // Load token and user on app start
   useEffect(() => {
-    const savedUser = localStorage.getItem("authUser");
-    const savedToken = localStorage.getItem("authToken");
-    if (savedUser && savedToken) {
-      setAuthState({
-        user: JSON.parse(savedUser),
-        token: savedToken,
-      });
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    if (storedToken && storedUser) {
+      setIsAuthenticated(true);
+      setUser(JSON.parse(storedUser));
     }
   }, []);
 
+  const login = (userData, token) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
+    setIsAuthenticated(true);
+    setUser(userData);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+
   return (
-    <AuthContext.Provider value={{ authState, login, logout }}>
+    <AuthContext.Provider value={{ serverUrl, isAuthenticated, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

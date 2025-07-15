@@ -22,6 +22,8 @@ export default function Login() {
         navigate("/admin");
       } else if (res.data.user.role === "finance_manager") {
         navigate("/finance-dashboard");
+      } else if (res.data.user.role === "faculty") {
+        navigate("/faculty");
       } else {
         navigate("/dashboard");
       }
