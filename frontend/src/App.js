@@ -11,6 +11,8 @@ import FinManDashboard from "./pages/FinManDashboard";
 import StaffDashboard from "./pages/StaffDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import DepartmentDashboard from "./pages/DepartmentDashboard";
+import DepartmentUsers from "./pages/DepartmentUsers";
+import CategoryUsers from "./pages/CategoryUser";
 
 function App() {
   return (
@@ -28,7 +30,10 @@ function App() {
             <Route path="/finance-manager" element={<FinManDashboard />} />
             <Route path="/staff" element={<StaffDashboard />} />
             <Route path="/student" element={<StudentDashboard />} />
-             <Route path="/hod" element={<DepartmentDashboard />} />
+            <Route path="/hod" element={<DepartmentDashboard />} />
+            <Route path="/department-users/:id" element={<DepartmentUsers />} />
+            <Route path="/administration-users" element={<CategoryUsers />} />
+            <Route path="/others-users" element={<CategoryUsers />} />
           </Routes>
         </main>
       </div>

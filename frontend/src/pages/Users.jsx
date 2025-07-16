@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/authContext.jsx";
 import api from "../api";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import UserFormModal from "../components/UserFormModal.jsx";
 
 export default function Users() {
@@ -11,6 +11,18 @@ export default function Users() {
     const [error, setError] = useState("");
     const [selectedUser, setSelectedUser] = useState(null);
     const [showAdd, setShowAdd] = useState(false);
+    const navigate = useNavigate();
+
+    const departments = [
+        { id: 1, name: "Computer Science & Engineering (CSE)" },
+        { id: 2, name: "Electrical Engineering (EE)" },
+        { id: 3, name: "Mechanical Engineering (ME)" },
+        { id: 4, name: "Artificial Intelligence and Data Science (AIDS)" },
+        { id: 5, name: "Electronics & Communication Engineering (ECE)" },
+        { id: 6, name: "Mathematics & Computing (MAC)" },
+        { id: 7, name: "Civil Engineering (CE)" },
+        { id: 8, name: "Chemical Engineering (ChemE)" }
+    ];
 
     const fetchUsers = async () => {
         try {
@@ -40,6 +52,14 @@ export default function Users() {
         }
     };
 
+    const navigateToFilteredUsers = (filterType, id = null) => {
+        if (filterType === 'department') {
+            navigate(`/department-users/${id}`);
+        } else {
+            navigate(`/${filterType}-users`);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -48,7 +68,7 @@ export default function Users() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
                         <p className="text-gray-600 mt-1">
-                            Manage all system users and their permissions
+                            Select a category to view users
                         </p>
                     </div>
                     <button
@@ -62,98 +82,40 @@ export default function Users() {
                     </button>
                 </div>
 
-                {/* Content */}
-                {loading ? (
-                    <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center">
-                        <p className="text-gray-500">Loading users...</p>
+                {/* Department Buttons Grid */}
+                <div className="mb-8">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Departments</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {departments.map((dept) => (
+                            <button
+                                key={dept.id}
+                                onClick={() => navigateToFilteredUsers('department', dept.id)}
+                                className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:border-blue-500 transition-colors duration-200 text-left"
+                            >
+                                <h3 className="font-medium text-gray-900">{dept.name}</h3>
+                                <p className="text-sm text-gray-500 mt-1">View all users</p>
+                            </button>
+                        ))}
                     </div>
-                ) : error ? (
-                    <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center">
-                        <p className="text-red-500">{error}</p>
-                    </div>
-                ) : (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            ID
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Name
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Email
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Role
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Department
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {users.map((u) => (
-                                        <tr key={u.id} className="hover:bg-gray-50 transition-colors duration-150">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {u.id}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {u.name}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {u.email}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                    u.role === 'admin' 
-                                                        ? 'bg-purple-100 text-purple-800' 
-                                                        : 'bg-blue-100 text-blue-800'
-                                                }`}>
-                                                    {u.role}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {u.department_id || '-'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div className="flex space-x-4">
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedUser(u);
-                                                            setShowAdd(true);
-                                                        }}
-                                                        className="text-blue-900 hover:text-blue-700 transition-colors duration-200"
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(u.id)}
-                                                        className="text-red-600 hover:text-red-800 transition-colors duration-200"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {users.length === 0 && (
-                                        <tr>
-                                            <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                                                No users found
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
+                </div>
+
+                {/* Administration and Others Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                        onClick={() => navigateToFilteredUsers('administration')}
+                        className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:border-green-500 transition-colors duration-200 text-left"
+                    >
+                        <h3 className="font-medium text-gray-900">Administration</h3>
+                        <p className="text-sm text-gray-500 mt-1">Staff, Finance, and Admin</p>
+                    </button>
+                    <button
+                        onClick={() => navigateToFilteredUsers('others')}
+                        className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:border-purple-500 transition-colors duration-200 text-left"
+                    >
+                        <h3 className="font-medium text-gray-900">Others</h3>
+                        <p className="text-sm text-gray-500 mt-1">Unassigned users</p>
+                    </button>
+                </div>
 
                 {/* Modal */}
                 {showAdd && (

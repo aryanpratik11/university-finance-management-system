@@ -10,7 +10,8 @@ CREATE TABLE users (
 CREATE TABLE departments (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
-  budget NUMERIC(15,2) DEFAULT 0
+  budget NUMERIC(15,2) DEFAULT 0,
+  head_id INTEGER REFERENCES users(id)
 );
 
 CREATE TABLE students (
@@ -18,7 +19,7 @@ CREATE TABLE students (
   user_id INTEGER REFERENCES users(id) UNIQUE, -- One-to-one
   enrollment_no VARCHAR(50) UNIQUE,
   program VARCHAR(100),
-  admission_date DATE
+  batch INTEGER
 );
 
 CREATE TABLE invoices (

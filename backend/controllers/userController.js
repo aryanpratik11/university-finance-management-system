@@ -58,14 +58,14 @@ export const registerUser = async (req, res) => {
         const user = userResult.rows[0];
 
         if (role === "student") {
-            if (!studentData || !studentData.enrollment_no || !studentData.program || !studentData.admission_date) {
+            if (!studentData || !studentData.enrollment_no || !studentData.batch) {
                 return res.status(400).json({ error: "Missing student details" });
             }
 
             await pool.query(
-                `INSERT INTO students (user_id, enrollment_no, program, admission_date)
-         VALUES ($1, $2, $3, $4)`,
-                [user.id, studentData.enrollment_no, studentData.program, studentData.admission_date]
+                `INSERT INTO students (user_id, enrollment_no, batch)
+         VALUES ($1, $2, $3)`,
+                [user.id, studentData.enrollment_no, studentData.batch]
             );
         }
 
@@ -113,21 +113,21 @@ export const updateUser = async (req, res) => {
         if (role === "student") {
             if (studentRows.length === 0) {
                 // Insert new student record if missing
-                if (!studentData || !studentData.enrollment_no || !studentData.program || !studentData.admission_date) {
+                if (!studentData || !studentData.enrollment_no || !studentData.batch) {
                     return res.status(400).json({ error: "Missing student details" });
                 }
                 await pool.query(
-                    `INSERT INTO students (user_id, enrollment_no, program, admission_date)
-           VALUES ($1, $2, $3, $4)`,
-                    [userId, studentData.enrollment_no, studentData.program, studentData.admission_date]
+                    `INSERT INTO students (user_id, enrollment_no, batch)
+           VALUES ($1, $2, $3)`,
+                    [userId, studentData.enrollment_no, studentData.batch]
                 );
             } else {
                 // Update existing student record
                 await pool.query(
                     `UPDATE students 
-           SET enrollment_no = $1, program = $2, admission_date = $3
-           WHERE user_id = $4`,
-                    [studentData.enrollment_no, studentData.program, studentData.admission_date, userId]
+           SET enrollment_no = $1, batch = $2
+           WHERE user_id = $3`,
+                    [studentData.enrollment_no, studentData.batch, userId]
                 );
             }
         } else {
@@ -177,4 +177,130 @@ export const deleteUser = async (req, res) => {
         console.error("Error deleting user:", error);
         res.status(500).json({ error: "Server error" });
     }
+};
+
+export const filterUsers = async (req, res) => {
+    const { departmentId, category } = req.query;
+
+    try {
+        let result;
+
+        if (departmentId) {
+            result = await pool.query(
+                `
+        SELECT 
+          u.*,
+          s.batch
+        FROM users u
+        LEFT JOIN students s ON s.user_id = u.id
+        WHERE u.department_id = $1
+          AND u.role IN ('hod', 'faculty', 'student')
+        ORDER BY 
+          CASE 
+            WHEN u.role = 'hod' THEN 1
+            WHEN u.role = 'faculty' THEN 2
+            WHEN u.role = 'student' THEN 3
+            ELSE 4
+          END
+        `,
+                [departmentId]
+            );
+        } else if (category === "administration") {
+            result = await pool.query(
+                `
+        SELECT * FROM users
+        WHERE role IN ('admin', 'finance_manager', 'staff')
+        ORDER BY role
+        `
+            );
+        } else if (category === "others") {
+            result = await pool.query(
+                `
+        SELECT 
+          u.*,
+          s.batch
+        FROM users u
+        LEFT JOIN students s ON s.user_id = u.id
+        WHERE u.role IN ('faculty', 'student')
+          AND u.department_id IS NULL
+        ORDER BY role
+        `
+            );
+        } else {
+            return res.status(400).json({ message: "Invalid filter" });
+        }
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const getDepartmentById = async (req, res) => {
+    const { id } = req.params;
+    const { rows } = await pool.query("SELECT * FROM departments WHERE id = $1", [id]);
+    if (rows.length === 0) return res.status(404).json({ message: "Department not found" });
+    res.json(rows[0]);
+};
+
+export const addUsersBulk = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { users } = req.body;
+
+    if (!users || !Array.isArray(users) || users.length === 0) {
+      return res.status(400).json({ error: "No users provided" });
+    }
+
+    await client.query("BEGIN");
+
+    for (const u of users) {
+      const { name, email, password, role, department_id, studentData } = u;
+
+      // Check if exists
+      const { rows: existing } = await client.query(
+        "SELECT id FROM users WHERE email = $1",
+        [email]
+      );
+      if (existing.length > 0) {
+        throw new Error(`User already exists: ${email}`);
+      }
+
+      // Hash password
+      const hashed = await bcrypt.hash(password, 10);
+
+      // Insert user
+      const userResult = await client.query(
+        `INSERT INTO users (name, email, password, role, department_id)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [name, email, hashed, role, department_id]
+      );
+
+      const userId = userResult.rows[0].id;
+
+      // If student, insert student record
+      if (role === "student") {
+        if (!studentData || !studentData.enrollment_no || !studentData.batch) {
+          throw new Error(`Missing student details for ${email}`);
+        }
+        await client.query(
+          `INSERT INTO students (user_id, enrollment_no, batch)
+           VALUES ($1, $2, $3)`,
+          [userId, studentData.enrollment_no, studentData.batch]
+        );
+      }
+    }
+
+    await client.query("COMMIT");
+    res.json({ message: "All users created successfully" });
+
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Bulk insert error:", error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
+  }
 };
