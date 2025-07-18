@@ -22,25 +22,6 @@ CREATE TABLE students (
   batch INTEGER
 );
 
-CREATE TABLE invoices (
-  id SERIAL PRIMARY KEY,
-  student_id INTEGER REFERENCES students(id),
-  amount NUMERIC(10,2) NOT NULL,
-  due_date DATE NOT NULL,
-  status VARCHAR(20) DEFAULT 'unpaid', -- unpaid/paid/overdue
-  created_by INTEGER REFERENCES users(id),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE payments (
-  id SERIAL PRIMARY KEY,
-  invoice_id INTEGER REFERENCES invoices(id),
-  amount NUMERIC(10,2) NOT NULL,
-  payment_date DATE DEFAULT CURRENT_DATE,
-  payment_method VARCHAR(30),
-  received_by INTEGER REFERENCES users(id) -- who recorded the payment
-);
-
 CREATE TABLE donations (
   id SERIAL PRIMARY KEY,
   donor_id INTEGER REFERENCES users(id),
@@ -83,14 +64,13 @@ CREATE TABLE payroll (
   processed_by INTEGER REFERENCES users(id)
 );
 
-CREATE TABLE fees (
+CREATE TABLE fee_structures (
   id SERIAL PRIMARY KEY,
-  student_id INTEGER REFERENCES users(id),
+  name VARCHAR(100) NOT NULL,
   description TEXT,
-  amount NUMERIC(12,2) NOT NULL,
-  status VARCHAR(20) DEFAULT 'pending', -- pending, paid, overdue
-  due_date DATE,
-  paid_at TIMESTAMP
+  amount NUMERIC(10,2) NOT NULL,
+  due_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE student_aid_applications (
@@ -110,4 +90,28 @@ CREATE TABLE aid_disbursements (
   aid_application_id INTEGER REFERENCES student_aid_applications(id),
   amount NUMERIC(12,2) NOT NULL,
   disbursed_at TIMESTAMP
+);
+
+-- 🟢 transactions
+CREATE TYPE transaction_status AS ENUM ('success', 'fail');
+
+CREATE TABLE transactions (
+    id SERIAL PRIMARY KEY,
+    student_fee_record_id INTEGER REFERENCES student_fee_records(id) ON DELETE CASCADE,
+    amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
+    payment_date TIMESTAMP DEFAULT now(),
+    method VARCHAR(50),
+    remarks TEXT,
+    status transaction_status NOT NULL
+);
+
+-- 🟢 student_fee_records
+CREATE TABLE student_fee_records (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
+    fee_structure_id INTEGER REFERENCES fee_structures(id) ON DELETE CASCADE,
+    status VARCHAR DEFAULT 'unpaid' CHECK (status IN ('unpaid', 'partial', 'paid')),
+    amount_paid NUMERIC(10,2) DEFAULT 0,
+    due_date DATE,
+    created_at TIMESTAMP DEFAULT now()
 );

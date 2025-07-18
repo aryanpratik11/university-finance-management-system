@@ -28,7 +28,6 @@ app.use("/api/faculty", facultyRouter);
 app.use("/api/finance-manager", finmanRouter);
 app.use("/api/staff", staffRouter);
 app.use("/api/student", studentRouter);
-app.use("/api/student", studentRouter);
 app.use("/api/hod", departRouter);
 
 connectDB().then(() => {

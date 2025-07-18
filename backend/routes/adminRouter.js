@@ -1,24 +1,38 @@
 import express from "express";
 import { protect, authorize } from "../middleware/auth.js";
-import { addUsersBulk, deleteUser, filterUsers, getAllUsers, getDepartmentById, registerUser, updateUser } from "../controllers/userController.js";
-import { createInvoice, createPayment, deleteInvoice, getAllInvoices, getAllPayments, updateInvoiceStatus } from "../controllers/transController.js";
+import { addUsersBulk, deleteUser, filterUsers, getAllDepartment, getAllUsers, getDepartmentById, registerUser, updateUser } from "../controllers/userController.js";
+import { addFeeStructure, assignFeeBulk, assignFeeList, assignFeeSt, deleteFeeStructure, getAllTransactions, getAssignedFees, getFeeStructures, getStudentFees, getStudentTransactions, recordTransaction, updateStudentFee, upFeeStructure } from "../controllers/feeController.js";
 
 const adminRouter = express.Router();
 
-adminRouter.get("/allusers", protect, authorize("admin"), getAllUsers);
-adminRouter.get("/users/filter", protect, authorize("admin"), filterUsers);
-adminRouter.get("/departments/:id", protect, authorize("admin"), getDepartmentById);
 adminRouter.post("/adduser", protect, authorize("admin"), registerUser);
+adminRouter.get("/allusers", protect, authorize("admin"), getAllUsers);
 adminRouter.post("/adduser/bulk", protect, authorize("admin"), addUsersBulk);
 adminRouter.put("/upuser/:id", protect, authorize("admin"), updateUser);
 adminRouter.delete("/deluser/:id", protect, authorize("admin"), deleteUser);
+adminRouter.get("/users/filter", protect, authorize("admin"), filterUsers);
 
-adminRouter.get("/allinvoices", protect, authorize("admin"), getAllInvoices);
-adminRouter.post("/addinvoice", protect, authorize("admin"), createInvoice);
-adminRouter.put("/upinvoice/:id", protect, authorize("admin"), updateInvoiceStatus);
-adminRouter.delete("/delinvoice/:id", protect, authorize("admin"), deleteInvoice);
+adminRouter.get("/alldepartments", getAllDepartment);
+adminRouter.get("/departments/:id", protect, authorize("admin"), getDepartmentById);
 
-adminRouter.get("/allpays", protect, authorize("admin"), getAllPayments);
-adminRouter.post("/addpay", protect, authorize("admin"), createPayment);
+
+adminRouter.post("/addfee", protect, authorize("admin", "finance_manager"), addFeeStructure);
+adminRouter.get("/allfee", getFeeStructures);
+adminRouter.put("/upfee/:id", protect, authorize("admin", "finance_manager"), upFeeStructure);
+adminRouter.delete("/delfee/:id", protect, authorize("admin", "finance_manager"), deleteFeeStructure);
+
+adminRouter.post("/assignfee", protect, authorize("admin", "finance_manager"), assignFeeSt);
+adminRouter.post("/assignfee/bulk", protect, authorize("admin", "finance_manager"), assignFeeBulk);
+adminRouter.post("/assignfee/list", protect, authorize("admin", "finance_manager"),assignFeeList);
+
+adminRouter.get("/assignedfees", protect, authorize("admin", "finance_manager"), getAssignedFees);
+
+adminRouter.get("allfeest/:student_id", protect, authorize("admin", "finance_manager"), getStudentFees);
+adminRouter.put("upfeest/:id", protect, authorize("admin", "finance_manager"), updateStudentFee);
+
+adminRouter.post("/addtransaction", protect, authorize("admin", "finance_manager"), recordTransaction);
+adminRouter.get("/alltrans", protect, authorize("admin", "finance_manager"), getAllTransactions);
+adminRouter.get("/alltransst/:student_id", protect, authorize("admin", "finance_manager"), getStudentTransactions);
+
 
 export default adminRouter;

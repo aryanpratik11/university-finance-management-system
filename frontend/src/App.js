@@ -13,6 +13,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import DepartmentDashboard from "./pages/DepartmentDashboard";
 import DepartmentUsers from "./pages/DepartmentUsers";
 import CategoryUsers from "./pages/CategoryUser";
+import FeeManagement from "./pages/FeeManagement";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<Users />} />
+            <Route path="/admin/fees" element={<FeeManagement />} />
             <Route path="/admin/invoices" element={<Invoices />} />
             <Route path="/faculty" element={<FacultyDashboard />} />
             <Route path="/finance-manager" element={<FinManDashboard />} />

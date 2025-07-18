@@ -145,7 +145,7 @@ export default function UserFormModal({
         setBulkLoading(true);
         setBulkError("");
         try {
-            await api.post("/admin/addusers-bulk", {
+            await api.post("/admin/adduser/bulk", {
                 users: bulkStudents,
             });
             onSuccess();
@@ -188,10 +188,10 @@ export default function UserFormModal({
                     </div>
                     <div className="flex justify-between items-center mt-1">
                         <p className="text-sm text-gray-500">
-                            {isEdit 
-                                ? "Update user details" 
-                                : showBulkUpload 
-                                    ? "Upload CSV file with student details" 
+                            {isEdit
+                                ? "Update user details"
+                                : showBulkUpload
+                                    ? "Upload CSV file with student details"
                                     : "Fill in the user information"}
                         </p>
                         {!isEdit && (

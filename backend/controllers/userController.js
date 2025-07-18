@@ -82,12 +82,68 @@ export const getAllUsers = async (req, res) => {
     res.json(rows);
 };
 
+export const addUsersBulk = async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const { users } = req.body;
+
+        if (!users || !Array.isArray(users) || users.length === 0) {
+            return res.status(400).json({ error: "No users provided" });
+        }
+
+        await client.query("BEGIN");
+
+        for (const u of users) {
+            const { name, email, password, role, department_id, studentData } = u;
+
+            const { rows: existing } = await client.query(
+                "SELECT id FROM users WHERE email = $1",
+                [email]
+            );
+            if (existing.length > 0) {
+                throw new Error(`User already exists: ${email}`);
+            }
+
+            const hashed = await bcrypt.hash(password, 10);
+
+            const userResult = await client.query(
+                `INSERT INTO users (name, email, password, role, department_id)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+                [name, email, hashed, role, department_id]
+            );
+
+            const userId = userResult.rows[0].id;
+
+            if (role === "student") {
+                if (!studentData || !studentData.enrollment_no || !studentData.batch) {
+                    throw new Error(`Missing student details for ${email}`);
+                }
+                await client.query(
+                    `INSERT INTO students (user_id, enrollment_no, batch)
+           VALUES ($1, $2, $3)`,
+                    [userId, studentData.enrollment_no, studentData.batch]
+                );
+            }
+        }
+
+        await client.query("COMMIT");
+        res.json({ message: "All users created successfully" });
+
+    } catch (error) {
+        await client.query("ROLLBACK");
+        console.error("Bulk insert error:", error);
+        res.status(500).json({ error: error.message });
+    } finally {
+        client.release();
+    }
+};
+
 export const updateUser = async (req, res) => {
     const userId = req.params.id;
     const { name, email, role, department_id, studentData } = req.body;
 
     try {
-        // 1. Check if user exists
         const { rows: existing } = await pool.query(
             "SELECT * FROM users WHERE id = $1",
             [userId]
@@ -96,7 +152,6 @@ export const updateUser = async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // 2. Update users table
         await pool.query(
             `UPDATE users 
        SET name = $1, email = $2, role = $3, department_id = $4
@@ -104,7 +159,6 @@ export const updateUser = async (req, res) => {
             [name, email, role, department_id, userId]
         );
 
-        // 3. Handle student record
         const { rows: studentRows } = await pool.query(
             "SELECT * FROM students WHERE user_id = $1",
             [userId]
@@ -112,7 +166,6 @@ export const updateUser = async (req, res) => {
 
         if (role === "student") {
             if (studentRows.length === 0) {
-                // Insert new student record if missing
                 if (!studentData || !studentData.enrollment_no || !studentData.batch) {
                     return res.status(400).json({ error: "Missing student details" });
                 }
@@ -122,7 +175,6 @@ export const updateUser = async (req, res) => {
                     [userId, studentData.enrollment_no, studentData.batch]
                 );
             } else {
-                // Update existing student record
                 await pool.query(
                     `UPDATE students 
            SET enrollment_no = $1, batch = $2
@@ -131,7 +183,6 @@ export const updateUser = async (req, res) => {
                 );
             }
         } else {
-            // If role is no longer student, remove student record
             if (studentRows.length > 0) {
                 await pool.query(
                     "DELETE FROM students WHERE user_id = $1",
@@ -151,7 +202,6 @@ export const deleteUser = async (req, res) => {
     const userId = req.params.id;
 
     try {
-        // 1. Check if user exists
         const { rows: existing } = await pool.query(
             "SELECT * FROM users WHERE id = $1",
             [userId]
@@ -160,13 +210,11 @@ export const deleteUser = async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // 2. Remove student record if exists
         await pool.query(
             "DELETE FROM students WHERE user_id = $1",
             [userId]
         );
 
-        // 3. Delete user
         await pool.query(
             "DELETE FROM users WHERE id = $1",
             [userId]
@@ -244,63 +292,8 @@ export const getDepartmentById = async (req, res) => {
     res.json(rows[0]);
 };
 
-export const addUsersBulk = async (req, res) => {
-  const client = await pool.connect();
-  try {
-    const { users } = req.body;
-
-    if (!users || !Array.isArray(users) || users.length === 0) {
-      return res.status(400).json({ error: "No users provided" });
-    }
-
-    await client.query("BEGIN");
-
-    for (const u of users) {
-      const { name, email, password, role, department_id, studentData } = u;
-
-      // Check if exists
-      const { rows: existing } = await client.query(
-        "SELECT id FROM users WHERE email = $1",
-        [email]
-      );
-      if (existing.length > 0) {
-        throw new Error(`User already exists: ${email}`);
-      }
-
-      // Hash password
-      const hashed = await bcrypt.hash(password, 10);
-
-      // Insert user
-      const userResult = await client.query(
-        `INSERT INTO users (name, email, password, role, department_id)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING id`,
-        [name, email, hashed, role, department_id]
-      );
-
-      const userId = userResult.rows[0].id;
-
-      // If student, insert student record
-      if (role === "student") {
-        if (!studentData || !studentData.enrollment_no || !studentData.batch) {
-          throw new Error(`Missing student details for ${email}`);
-        }
-        await client.query(
-          `INSERT INTO students (user_id, enrollment_no, batch)
-           VALUES ($1, $2, $3)`,
-          [userId, studentData.enrollment_no, studentData.batch]
-        );
-      }
-    }
-
-    await client.query("COMMIT");
-    res.json({ message: "All users created successfully" });
-
-  } catch (error) {
-    await client.query("ROLLBACK");
-    console.error("Bulk insert error:", error);
-    res.status(500).json({ error: error.message });
-  } finally {
-    client.release();
-  }
+export const getAllDepartment = async (req, res) => {
+    const { rows } = await pool.query("SELECT * FROM departments");
+    if (rows.length === 0) return res.status(404).json({ message: "Departments not found" });
+    res.json(rows);
 };
