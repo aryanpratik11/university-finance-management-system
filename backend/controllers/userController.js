@@ -7,6 +7,15 @@ export const loginUser = async (req, res) => {
 
     const { rows } = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
     const user = rows[0];
+    let student_id = null;
+
+    if (user.role === "student") {
+        const studentRes = await pool.query(
+            "SELECT id FROM students WHERE user_id = $1",
+            [user.id]
+        );
+        student_id = studentRes.rows[0]?.id;
+    }
 
     if (user && (await bcrypt.compare(password, user.password))) {
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "30d" });
@@ -17,6 +26,7 @@ export const loginUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                ...(student_id && { student_id }),
             },
         });
     } else {

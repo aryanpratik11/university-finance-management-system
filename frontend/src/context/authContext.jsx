@@ -21,6 +21,9 @@ export const AuthProvider = ({ children }) => {
   const login = (userData, token) => {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
+    if (userData.student_id) {
+      localStorage.setItem("studentId", userData.student_id);
+    }
     setIsAuthenticated(true);
     setUser(userData);
   };
@@ -28,6 +31,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("studentId");
     setIsAuthenticated(false);
     setUser(null);
   };

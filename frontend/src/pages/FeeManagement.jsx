@@ -3,6 +3,9 @@ import api from "../api";
 import FeeStructureFormModal from "../components/FeeStructureFormModal.jsx";
 import AssignFeeFormModal from "../components/AssignFeeFormModal.jsx";
 import RecordTransactionFormModal from "../components/RecordTransactionFormModal.jsx";
+import { jsPDF } from "jspdf";
+import { useContext } from "react";
+import { AuthContext } from "../context/authContext";
 
 const StatsDashboard = ({ stats }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -29,6 +32,7 @@ const StatsDashboard = ({ stats }) => (
 
 // --- Main Parent Component ---
 export default function FeeManagementPage() {
+  const { user } = useContext(AuthContext);
   // Data State
   const [feeStructures, setFeeStructures] = useState([]);
   const [students, setStudents] = useState([]);
@@ -63,6 +67,7 @@ export default function FeeManagementPage() {
       setStudents(studentRes.data);
       setAssignedFees(assignRes.data);
       setTransactions(txnRes.data);
+      console.log(assignRes.data);
     } catch (err) {
       setError("Failed to fetch critical data. Please refresh the page.");
     } finally {
@@ -81,12 +86,10 @@ export default function FeeManagementPage() {
   }, [transactions, students, feeStructures]);
 
   useEffect(() => {
-    console.log("useEffect running");
     const fetchDepartments = async () => {
       try {
         const res = await fetch("http://localhost:5000/api/admin/alldepartments");
         const data = await res.json();
-        console.log(data);
         setDepartments(data);
       } catch (err) {
         console.error("Failed to fetch departments", err);
@@ -136,9 +139,6 @@ export default function FeeManagementPage() {
         status: assignData.status || "unpaid",
         paid_amount: assignData.paid_amount || 0,
       };
-      console.log("Assign Mode:", assignMode);
-      console.log("Endpoint:", endpoint);
-      console.log("Payload:", payload);
 
       switch (assignMode) {
         case "single": endpoint = "/admin/assignfee"; payload.student_id = assignData.student_id; break;
@@ -148,9 +148,7 @@ export default function FeeManagementPage() {
         case "custom": endpoint = "/admin/assignfee/list"; payload.student_ids = assignData.student_ids; break;
         default: throw new Error("Invalid assignment mode");
       }
-      console.log("Assign Mode:", assignMode);
-      console.log("Endpoint:", endpoint);
-      console.log("Payload:", payload);
+
       await api.post(endpoint, payload);
       setSuccess("Fee assigned successfully!");
       await fetchAllData();
@@ -162,7 +160,7 @@ export default function FeeManagementPage() {
     if (!window.confirm("Are you sure you want to revoke this fee assignment?")) return;
     setError(""); setSuccess("");
     try {
-      await api.delete(`/admin/revoke-fee/${assignedFeeId}`);
+      await api.delete(`/admin/revokefee/${assignedFeeId}`);
       setSuccess("Fee assignment revoked successfully.");
       await fetchAllData();
     } catch (err) { setError(err.response?.data?.message || "Failed to revoke fee assignment."); }
@@ -177,6 +175,89 @@ export default function FeeManagementPage() {
       return true;
     } catch (err) { setError(err.response?.data?.message || "Failed to record transaction."); return false; }
   };
+
+  const handleApprove = async (transaction_id) => {
+    try {
+      const res = await api.post('/admin/approvepayment', {
+        transaction_id: transaction_id,
+        admin_user_id: user?.id,
+      });
+
+      if (res.status === 200) {
+        alert("Transaction approved successfully!");
+      } else {
+        alert("Approval failed.");
+      }
+    } catch (error) {
+      console.error("Approval error:", error);
+      alert("Error approving transaction.");
+    }
+  };
+
+  const generateReceipt = (txn) => {
+    const doc = new jsPDF();
+
+    // Add Logo — must be base64 or hosted image URL
+    const logoUrl = "/AcadmiVault UFM header.png";
+    const imgWidth = 25;
+    const imgHeight = 25;
+
+    doc.addImage(logoUrl, "PNG", 20, 10, imgWidth, imgHeight);
+
+    // Header Text beside Logo
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("AcadmiVault UFM", 50, 18);
+    doc.setFontSize(10);
+    doc.text("University Finance Management Webapp", 50, 24);
+
+    // Title
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("UNIVERSITY FEE RECEIPT", 105, 40, { align: "center" });
+
+    doc.setLineWidth(0.5);
+    doc.line(20, 45, 190, 45);
+
+    // Receipt Info Box
+    let y = 55;
+    const lineGap = 8;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 150, y - 20);
+
+    const rows = [
+      [`Student Name`, txn.student_name],
+      [`Department`, txn.department || "N/A"],
+      [`Student ID`, txn.student_id || "N/A"],
+      [`Fee Title`, txn.fee_name],
+      [`Amount Paid`, `₹${txn.amount_paid}`],
+      [`Payment Status`, txn.status],
+      [`Transaction ID`, txn.id],
+      [`Reference Number`, txn.payment_reference],
+      [`Payment Method`, txn.payment_method || "Online"],
+      [`Approved By`, txn.approved_by || "Admin"]
+    ];
+
+    rows.forEach(([label, value]) => {
+      doc.text(`${label}:`, 30, y);
+      doc.text(`${value}`, 90, y);
+      y += lineGap;
+    });
+
+    // Bottom Line
+    doc.line(20, y + 5, 190, y + 5);
+
+    // Footer
+    doc.setFontSize(10);
+    doc.text("This is a system-generated receipt. No signature required.", 105, y + 20, { align: "center" });
+
+    doc.save(`receipt-${txn.student_name}.pdf`);
+  };
+
+
+
 
   // --- Modal Triggers ---
   const openNewFeeStructureModal = () => { setEditingFee(null); setShowFeeStructureModal(true); };
@@ -225,8 +306,31 @@ export default function FeeManagementPage() {
                 <button onClick={() => setShowAssignFeeModal(true)} className="px-4 py-2 bg-blue-900 text-white text-sm font-medium rounded-lg hover:bg-blue-800">Assign Fee</button>
               </div>
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50"><tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fee</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th></tr></thead>
-                <tbody className="bg-white divide-y divide-gray-200">{assignedFees.map((a) => (<tr key={a.id}><td className="px-6 py-4">{a.student_name}</td><td className="px-6 py-4">{a.fee_title}</td><td className="px-6 py-4"><span className={`px-2 inline-flex text-xs font-semibold rounded-full ${a.status === "PAID" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>{a.status}</span></td><td className="px-6 py-4"><button onClick={() => handleRevokeFee(a.id)} className="text-red-600 hover:text-red-800 disabled:text-gray-400" disabled={a.status === 'PAID'}>Revoke</button></td></tr>))}</tbody>
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fee</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">{assignedFees.map((a) => (
+                  <tr key={a.id}>
+                    <td className="px-6 py-4">{a.student_name}</td>
+                    <td className="px-6 py-4">{a.batch}</td>
+                    <td className="px-6 py-4">{a.department_name}</td>
+                    <td className="px-6 py-4">{a.fee_title}</td>
+                    <td className="px-6 py-4"><span className={`px-2 inline-flex text-xs font-semibold rounded-full ${a.status === "PAID" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>{a.status}</span></td>
+                    <td className="px-6 py-4">
+                      <button onClick={() => handleRevokeFee(a.id)} className="text-red-600 hover:text-red-800 disabled:text-gray-400" disabled={a.status === 'PAID'}>Revoke
+                      </button>
+                    </td>
+
+                  </tr>
+                ))}
+                </tbody>
               </table>
             </div>
           )}
@@ -238,8 +342,53 @@ export default function FeeManagementPage() {
                 <button onClick={() => setShowTransactionModal(true)} className="px-4 py-2 bg-blue-900 text-white text-sm font-medium rounded-lg hover:bg-blue-800">Record Transaction</button>
               </div>
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50"><tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fee</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th></tr></thead>
-                <tbody className="bg-white divide-y divide-gray-200">{transactions.map((txn) => (<tr key={txn.id}><td className="px-6 py-4">{txn.student?.name}</td><td className="px-6 py-4">{txn.fee?.name}</td><td className="px-6 py-4">₹{txn.amount}</td></tr>))}</tbody>
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fee</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount Paid</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount Due</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Approval</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date-Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Approve/Reciept</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">{transactions.map((txn) => (
+                  <tr key={txn.id}>
+                    <td className="px-6 py-4">{txn.student_name}</td>
+                    <td className="px-6 py-4">{txn.fee_name}</td>
+                    <td className="px-6 py-4">₹{txn.amount_paid}</td>
+                    <td className="px-6 py-4">₹{txn.amount - txn.amount_paid}</td>
+                    <td className="px-6 py-4">{txn.method}</td>
+                    <td className="px-6 py-4">{txn.payment_reference}</td>
+                    <td className="px-6 py-4">{txn.status}</td>
+                    <td className="px-6 py-4">{txn.payment_date}</td>
+                    <td className="px-6 py-4">{txn.remarks}</td>
+                    <td className="px-6 py-4">
+                      {txn.status === 'pending' && (
+                        <button
+                          onClick={() => handleApprove(txn.id)}
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          Approve
+                        </button>
+                      )}
+                      {txn.status === 'success' && (
+                        <button
+                          onClick={() => generateReceipt(txn)}
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Download Receipt"
+                        >
+                          🧾
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                </tbody>
               </table>
             </div>
           )}

@@ -9,6 +9,7 @@ import finmanRouter from "./routes/finmanRouter.js";
 import staffRouter from "./routes/staffRouter.js";
 import studentRouter from "./routes/studentRouter.js";
 import departRouter from "./routes/departmentRouter.js";
+import paymentRouter from "./routes/paymentRouter.js";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use("/api/finance-manager", finmanRouter);
 app.use("/api/staff", staffRouter);
 app.use("/api/student", studentRouter);
 app.use("/api/hod", departRouter);
+app.use("/api/payment", paymentRouter);
 
 connectDB().then(() => {
     app.listen(PORT, () => {

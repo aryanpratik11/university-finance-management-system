@@ -59,10 +59,10 @@ export default function AdminDashboard() {
               icon: "📈",
             },
             {
-              title: "System Settings",
-              description: "Configure platform preferences",
-              link: "/admin/settings",
-              icon: "⚙️",
+              title: "Staff Management",
+              description: "Manage payroll and grants",
+              link: "/admin/staff",
+              icon: "💼",
             },
             {
               title: "Fee Collection",
@@ -107,11 +107,10 @@ export default function AdminDashboard() {
               <p className="text-2xl font-bold text-blue-900">{stat.value}</p>
               <p className="text-gray-600 mt-1">{stat.label}</p>
               <p
-                className={`mt-2 text-sm ${
-                  stat.trend.startsWith("↑")
-                    ? "text-green-600"
-                    : "text-red-600"
-                }`}
+                className={`mt-2 text-sm ${stat.trend.startsWith("↑")
+                  ? "text-green-600"
+                  : "text-red-600"
+                  }`}
               >
                 {stat.trend}
               </p>

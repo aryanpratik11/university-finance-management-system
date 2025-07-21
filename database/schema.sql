@@ -93,7 +93,7 @@ CREATE TABLE aid_disbursements (
 );
 
 -- 🟢 transactions
-CREATE TYPE transaction_status AS ENUM ('success', 'fail');
+CREATE TYPE transaction_status AS ENUM ('success', 'fail', 'pending');
 
 CREATE TABLE transactions (
     id SERIAL PRIMARY KEY,
@@ -101,8 +101,12 @@ CREATE TABLE transactions (
     amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
     payment_date TIMESTAMP DEFAULT now(),
     method VARCHAR(50),
+    payment_reference VARCHAR(100);
     remarks TEXT,
-    status transaction_status NOT NULL
+    status transaction_status NOT NULL,
+    initiated_by INTEGER REFERENCES users(id),
+    approved_by INTEGER REFERENCES users(id),
+    approved_at TIMESTAMP;
 );
 
 -- 🟢 student_fee_records

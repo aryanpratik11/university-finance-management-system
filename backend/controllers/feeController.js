@@ -19,8 +19,6 @@ export const addFeeStructure = async (req, res) => {
     res.status(500).json({ error: "Failed to create fee structure", details: err.message });
   }
 };
-
-
 export const getFeeStructures = async (req, res) => {
   try {
     const result = await pool.query(`SELECT * FROM fee_structures ORDER BY created_at DESC`);
@@ -29,7 +27,6 @@ export const getFeeStructures = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch fee structures" });
   }
 };
-
 export const upFeeStructure = async (req, res) => {
   try {
     const { id } = req.params;
@@ -60,9 +57,6 @@ export const upFeeStructure = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-
-
 export const deleteFeeStructure = async (req, res) => {
   const { id } = req.params;
   try {
@@ -72,7 +66,6 @@ export const deleteFeeStructure = async (req, res) => {
     res.status(500).json({ error: "Failed to delete fee structure" });
   }
 };
-
 
 export const assignFeeSt = async (req, res) => {
   const { student_id, fee_structure_id, status, amount_paid } = req.body;
@@ -87,7 +80,6 @@ export const assignFeeSt = async (req, res) => {
     res.status(500).json({ error: "Failed to assign fee", details: err.message });
   }
 };
-
 export const assignFeeBulk = async (req, res) => {
   console.log("Received payload:", req.body);
 
@@ -157,8 +149,6 @@ export const assignFeeBulk = async (req, res) => {
     res.status(500).json({ error: "Bulk fee assignment failed", details: err.message });
   }
 };
-
-
 export const assignFeeList = async (req, res) => {
   const { student_ids, fee_structure_id, status, amount_paid } = req.body;
 
@@ -187,7 +177,28 @@ export const assignFeeList = async (req, res) => {
     res.status(500).json({ error: "Custom fee assignment failed", details: err.message });
   }
 };
+export const revokeAssignedFee = async (req, res) => {
+  const { id } = req.params;
 
+  try {
+    const check = await pool.query(
+      "SELECT * FROM student_fee_records WHERE id = $1",
+      [id]
+    );
+
+    if (check.rowCount === 0) {
+      return res.status(404).json({ message: "Assigned fee not found." });
+    }
+
+    // Delete the assigned fee
+    await pool.query("DELETE FROM student_fee_records WHERE id = $1", [id]);
+
+    res.status(200).json({ message: "Assigned fee revoked successfully." });
+  } catch (error) {
+    console.error("Error revoking assigned fee:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
 export const getAssignedFees = async (req, res) => {
   try {
     const { student_id, department_id, batch, fee_structure_id, status } = req.query;
@@ -247,19 +258,29 @@ export const getAssignedFees = async (req, res) => {
 
 
 export const getStudentFees = async (req, res) => {
-  const { student_id } = req.params;
+  const { id } = req.params;
   try {
     const result = await pool.query(
-      `SELECT sf.*, fs.name AS fee_name, fs.amount AS total_amount
+      `SELECT sf.*, fs.name AS fee_name, fs.amount AS total_amount, s.user_id
        FROM student_fee_records sf
        JOIN fee_structures fs ON sf.fee_structure_id = fs.id
+       JOIN students s ON sf.student_id = s.id
        WHERE sf.student_id = $1`,
-      [student_id]
+      [id]
     );
+    console.log("Fetched fees from DB:", result.rows);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch student fees" });
   }
+};
+
+export const getStudentAidApplications = async (req, res) => {
+  return res.json([]);
+};
+
+export const getStudentDisbursements = async (req, res) => {
+  return res.json([]);
 };
 
 export const updateStudentFee = async (req, res) => {
@@ -267,7 +288,7 @@ export const updateStudentFee = async (req, res) => {
   const { status, amount_paid } = req.body;
   try {
     const result = await pool.query(
-      `UPDATE student_fee_records SET status=$1, amount_paid=$2 WHERE id=$3 RETURNING *`,
+      `UPDATE student_fee_records SET status = $1, amount_paid = $2 WHERE id = $3 RETURNING * `,
       [status, amount_paid, id]
     );
     res.json(result.rows[0]);
@@ -291,8 +312,8 @@ export const recordTransaction = async (req, res) => {
     await client.query("BEGIN");
 
     const insertResult = await client.query(
-      `INSERT INTO transactions (student_fee_record_id, amount, method, remarks, recorded_by)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      `INSERT INTO transactions(student_fee_record_id, amount, method, remarks, recorded_by)
+       VALUES($1, $2, $3, $4, $5) RETURNING * `,
       [student_fee_record_id, amount, method, remarks, recorded_by]
     );
 
@@ -328,23 +349,23 @@ export const recordTransaction = async (req, res) => {
     client.release();
   }
 };
-
 export const getAllTransactions = async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
-        t.*, 
-        fs.name AS fee_name, 
-        u.name AS student_name,
-        sfr.amount_paid,
-        sfr.status AS fee_status
+        t.*,
+      fs.name AS fee_name,
+      u.name AS student_name,
+      sfr.amount_paid,
+      sfr.status AS fee_status
       FROM transactions t
       JOIN student_fee_records sfr ON t.student_fee_record_id = sfr.id
       JOIN students s ON sfr.student_id = s.id
       JOIN users u ON s.user_id = u.id
       JOIN fee_structures fs ON sfr.fee_structure_id = fs.id
       ORDER BY t.payment_date DESC
-    `);
+      `);
+      console.log(result.rows);
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching transactions:", err);
@@ -357,11 +378,11 @@ export const getStudentTransactions = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT 
-         t.*, 
-         fs.name AS fee_name, 
-         u.name AS student_name,
-         sfr.amount_paid,
-         sfr.status AS fee_status
+         t.*,
+      fs.name AS fee_name,
+      u.name AS student_name,
+      sfr.amount_paid,
+      sfr.status AS fee_status
        FROM transactions t
        JOIN student_fee_records sfr ON t.student_fee_record_id = sfr.id
        JOIN fee_structures fs ON sfr.fee_structure_id = fs.id
