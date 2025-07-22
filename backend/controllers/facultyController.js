@@ -5,8 +5,8 @@ export const getFacultyDashboard = async (req, res) => {
 
     const [payroll, grants, expenses] = await Promise.all([
         pool.query(
-            "SELECT month, amount, paid_on FROM payroll WHERE staff_id = $1 ORDER BY paid_on DESC",
-            [userId]
+            "SELECT id, month, amount, paid_on, status FROM payroll WHERE staff_id = $1 ORDER BY month DESC",
+        [userId]
         ),
         pool.query(
             "SELECT * FROM grants WHERE faculty_id = $1 ORDER BY start_date DESC",

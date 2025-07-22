@@ -3,6 +3,7 @@ import { protect, authorize } from "../middleware/auth.js";
 import { addUsersBulk, deleteUser, filterUsers, getAllDepartment, getAllUsers, getDepartmentById, registerUser, updateUser } from "../controllers/userController.js";
 import { addFeeStructure, assignFeeBulk, assignFeeList, assignFeeSt, deleteFeeStructure, getAllTransactions, getAssignedFees, getFeeStructures, getStudentFees, getStudentTransactions, recordTransaction, revokeAssignedFee, updateStudentFee, upFeeStructure } from "../controllers/feeController.js";
 import { approveTransaction } from "../controllers/paymentController.js";
+import { generatePayrollsCurrentMonth, getAllPayrolls, payPayroll, updatePayroll } from "../controllers/payrollController.js";
 
 const adminRouter = express.Router();
 
@@ -34,6 +35,11 @@ adminRouter.post("/addtransaction", protect, authorize("admin", "finance_manager
 adminRouter.get("/alltrans", protect, authorize("admin", "finance_manager"), getAllTransactions);
 adminRouter.get("/alltransst/:student_id", protect, authorize("admin", "finance_manager"), getStudentTransactions);
 adminRouter.post("/approvepayment", protect, authorize("admin", "finance_manager"), approveTransaction);
+
+adminRouter.post("/generatepayroll", protect, authorize("admin", "finance_manager"), generatePayrollsCurrentMonth);
+adminRouter.get("/allpayrolls", protect, authorize("admin", "finance_manager"), getAllPayrolls);
+adminRouter.put("/uppayroll/:payroll_id", protect, authorize("admin", "finance_manager"), updatePayroll);
+adminRouter.post("/pay/:payroll_id", protect, authorize("admin", "finance_manager"), payPayroll);
 
 
 export default adminRouter;

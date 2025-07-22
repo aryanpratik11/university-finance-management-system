@@ -1,75 +1,168 @@
 import { pool } from "../config/db.js";
 
-/**
- * Create a new payroll record
- */
-export const createPayroll = async (req, res) => {
-    const { staff_id, role, month, amount, paid_on } = req.body;
-    const processed_by = req.user.id;
-
-    if (!staff_id || !role || !month || !amount) {
-        return res.status(400).json({ error: "All fields are required." });
-    }
+export const generatePayrollsCurrentMonth = async (req, res) => {
+    const processed_by_user_id = req.user.id;
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    // e.g. "2025-07"
 
     try {
-        const { rows } = await pool.query(
-            `INSERT INTO payroll (staff_id, role, month, amount, paid_on, processed_by)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-            [staff_id, role, month, amount, paid_on, processed_by]
-        );
+        const usersRes = await pool.query(`
+      SELECT id, role FROM users
+      WHERE is_active = true AND role IN ('staff', 'faculty')
+    `);
 
-        res.status(201).json(rows[0]);
-    } catch (err) {
-        console.error("Create payroll error:", err);
-        res.status(500).json({ error: "Server error" });
-    }
-};
+        const users = usersRes.rows;
 
-/**
- * Get all payroll records, optionally filtered by role
- */
-export const getAllPayroll = async (req, res) => {
-    const { role } = req.query;
+        for (let user of users) {
+            const { id: staff_id, role } = user;
 
-    try {
-        let query = `SELECT p.*, u.name as staff_name FROM payroll p
-                 JOIN users u ON p.staff_id = u.id`;
-        let params = [];
+            // Check if already has payroll for this month
+            const check = await pool.query(
+                `SELECT 1 FROM payroll WHERE staff_id = $1 AND month = $2`,
+                [staff_id, currentMonth]
+            );
 
-        if (role) {
-            query += ` WHERE p.role = $1`;
-            params.push(role);
+            if (check.rowCount > 0) continue; // already exists
+
+            // Get last month's payroll if exists
+            const prev = await pool.query(
+                `SELECT amount FROM payroll WHERE staff_id = $1 ORDER BY id DESC LIMIT 1`,
+                [staff_id]
+            );
+
+            const amount = prev.rowCount > 0 ? prev.rows[0].amount : 0;
+
+            // Create payroll for this month
+            await pool.query(
+                `INSERT INTO payroll (staff_id, role, month, amount, processed_by)
+         VALUES ($1, $2, $3, $4, $5)`,
+                [staff_id, role, currentMonth, amount, processed_by_user_id]
+            );
         }
 
-        query += ` ORDER BY p.paid_on DESC NULLS LAST`;
-
-        const { rows } = await pool.query(query, params);
-
-        res.json(rows);
+        return res.status(200).json({
+            success: true,
+            message: "Payrolls generated for current month",
+            month: currentMonth,
+        });
     } catch (err) {
-        console.error("Get all payroll error:", err);
-        res.status(500).json({ error: "Server error" });
+        console.error("Payroll generation error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error during payroll generation",
+        });
     }
 };
 
-/**
- * Get payroll history for a specific user
- */
-export const getUserPayroll = async (req, res) => {
-    const staff_id = req.params.staff_id;
+export const getAllPayrolls = async (req, res) => {
+    try {
+        const result = await pool.query(`
+      SELECT * FROM payroll ORDER BY id DESC
+    `);
+        return res.status(200).json({ payrolls: result.rows });
+    } catch (err) {
+        console.error("Failed to fetch payrolls", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const updatePayroll = async (req, res) => {
+    const { payroll_id } = req.params;
+    const { month, amount, status } = req.body;
+    const paid_by = req.user.id;
 
     try {
-        const { rows } = await pool.query(
-            `SELECT * FROM payroll
-       WHERE staff_id = $1
-       ORDER BY paid_on DESC NULLS LAST`,
-            [staff_id]
+        const result = await pool.query(
+            `UPDATE payroll
+       SET  month = COALESCE($1, month),
+            amount = COALESCE($2, amount),
+            status = COALESCE($3, status),
+            paid_by = $4,
+            updated_at = NOW()
+       WHERE id = $5
+       RETURNING *`,
+            [month, amount, status, paid_by, payroll_id]
         );
 
-        res.json(rows);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Payroll not found" });
+        }
+
+        return res.status(200).json({ message: "Payroll updated", payroll: result.rows[0] });
     } catch (err) {
-        console.error("Get user payroll error:", err);
-        res.status(500).json({ error: "Server error" });
+        console.error("Error updating payroll:", err);
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
+
+export const payPayroll = async (req, res) => {
+    const { payroll_id } = req.params;
+    const paid_by = req.user.id;
+
+    try {
+        const result = await pool.query(
+            `SELECT * FROM payroll WHERE id = $1`,
+            [payroll_id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Payroll record not found" });
+        }
+
+        const payroll = result.rows[0];
+
+        if (payroll.status === "paid") {
+            return res.status(400).json({ error: "Payroll already paid" });
+        }
+
+        const updateRes = await pool.query(
+            `UPDATE payroll
+       SET status = 'paid',
+           paid_on = CURRENT_DATE,
+           paid_by = $1,
+           updated_at = NOW()
+       WHERE id = $2
+       RETURNING *`,
+            [paid_by, payroll_id]
+        );
+
+        return res.status(200).json({
+            message: "Payroll marked as paid",
+            payroll: updateRes.rows[0],
+        });
+
+    } catch (err) {
+        console.error("Payroll payment error:", err);
+        return res.status(500).json({ error: "Server error during payroll payment" });
+    }
+};
+
+export const getPayrollForUser = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const result = await pool.query(
+      `SELECT 
+         id, 
+         month, 
+         amount, 
+         paid_on, 
+         status, 
+         role,
+         updated_at,
+         processed_by,
+         paid_by
+       FROM payroll
+       WHERE staff_id = $1
+       ORDER BY month DESC`,
+      [userId]
+    );
+
+    res.json({ payroll: result.rows });
+  } catch (err) {
+    console.error("Error fetching payroll for user:", err);
+    res.status(500).json({ message: "Failed to fetch payroll records." });
+  }
+};
+

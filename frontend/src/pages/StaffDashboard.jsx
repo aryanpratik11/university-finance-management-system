@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import api from "../api.js";
 import { format } from "date-fns";
+import { AuthContext } from "../context/authContext.jsx";
 
 export default function StaffDashboard() {
+    const { user } = useContext(AuthContext);
     const [payroll, setPayroll] = useState([]);
     const [stats, setStats] = useState({
         totalAmount: 0,
@@ -15,27 +17,26 @@ export default function StaffDashboard() {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const res = await api.get("/staff/payroll");
+                const res = await api.get("/staff/payroll/${user.id}"); // ✅ Corrected line
                 const payrollData = res.data?.payroll || [];
                 setPayroll(payrollData);
 
-                // Calculate stats
-                const totalAmount = payrollData.reduce((sum, p) => sum + (p.amount || 0), 0);
+                const paidPayrolls = payrollData.filter(p => p.paid_on);
+                const totalAmount = paidPayrolls.reduce((sum, p) => sum + (p.amount || 0), 0);
+                const averagePayment = paidPayrolls.length > 0
+                    ? totalAmount / paidPayrolls.length
+                    : 0;
 
                 let lastPayment = null;
-                if (payrollData.length > 0) {
-                    const validPayments = payrollData
-                        .filter(p => p.paid_on && !isNaN(new Date(p.paid_on).getTime()))
+                if (paidPayrolls.length > 0) {
+                    const validPayments = paidPayrolls
+                        .filter(p => !isNaN(new Date(p.paid_on).getTime()))
                         .map(p => new Date(p.paid_on).getTime());
 
                     if (validPayments.length > 0) {
                         lastPayment = new Date(Math.max(...validPayments));
                     }
                 }
-
-                const averagePayment = payrollData.length > 0
-                    ? totalAmount / payrollData.length
-                    : 0;
 
                 setStats({
                     totalAmount,
@@ -49,6 +50,7 @@ export default function StaffDashboard() {
                 setLoading(false);
             }
         };
+
 
         fetchData();
     }, []);

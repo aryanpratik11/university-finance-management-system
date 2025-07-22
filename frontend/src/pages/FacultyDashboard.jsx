@@ -78,7 +78,7 @@ export default function FacultyDashboard() {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h3 className="text-sm font-medium text-gray-500">Total Salary</h3>
             <p className="mt-2 text-3xl font-bold text-blue-900">
-              ₹{data.payroll.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
+              ₹{(data.payroll?.reduce((sum, p) => sum + p.amount, 0) || 0).toLocaleString()}
             </p>
             <p className="text-sm text-gray-500 mt-1">
               {data.payroll.length} payments received
@@ -178,6 +178,9 @@ export default function FacultyDashboard() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Payment Date
                   </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -191,6 +194,12 @@ export default function FacultyDashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {p.paid_on ? format(new Date(p.paid_on), "dd MMM yyyy") : "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.paid_on ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                        {p.paid_on ? 'Paid' : 'Pending'}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -232,11 +241,10 @@ export default function FacultyDashboard() {
                       ₹{g.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        g.status === 'active' ? 'bg-green-100 text-green-800' : 
-                        g.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                        'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${g.status === 'active' ? 'bg-green-100 text-green-800' :
+                        g.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
                         {g.status}
                       </span>
                     </td>
@@ -283,11 +291,10 @@ export default function FacultyDashboard() {
                       ₹{e.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        e.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                        e.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                        'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${e.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        e.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
                         {e.status}
                       </span>
                     </td>

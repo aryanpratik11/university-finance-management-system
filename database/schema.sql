@@ -61,6 +61,9 @@ CREATE TABLE payroll (
   month VARCHAR(15),
   amount NUMERIC(12,2) NOT NULL,
   paid_on DATE,
+  status VARCHAR(20) DEFAULT 'unpaid',
+  paid_by INTEGER REFERENCES users(id),
+  updated_at TIMESTAMP DEFAULT NOW(),
   processed_by INTEGER REFERENCES users(id)
 );
 
