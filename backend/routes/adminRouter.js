@@ -4,6 +4,7 @@ import { addUsersBulk, deleteUser, filterUsers, getAllDepartment, getAllUsers, g
 import { addFeeStructure, assignFeeBulk, assignFeeList, assignFeeSt, deleteFeeStructure, getAllTransactions, getAssignedFees, getFeeStructures, getStudentFees, getStudentTransactions, recordTransaction, revokeAssignedFee, updateStudentFee, upFeeStructure } from "../controllers/feeController.js";
 import { approveTransaction } from "../controllers/paymentController.js";
 import { generatePayrollsCurrentMonth, getAllPayrolls, payPayroll, updatePayroll } from "../controllers/payrollController.js";
+import { getAllExpenses, updateExpenseStatus } from "../controllers/expenseController.js";
 
 const adminRouter = express.Router();
 
@@ -24,7 +25,7 @@ adminRouter.delete("/delfee/:id", protect, authorize("admin", "finance_manager")
 
 adminRouter.post("/assignfee", protect, authorize("admin", "finance_manager"), assignFeeSt);
 adminRouter.post("/assignfee/bulk", protect, authorize("admin", "finance_manager"), assignFeeBulk);
-adminRouter.post("/assignfee/list", protect, authorize("admin", "finance_manager"),assignFeeList);
+adminRouter.post("/assignfee/list", protect, authorize("admin", "finance_manager"), assignFeeList);
 adminRouter.delete("/revokefee/:id", protect, authorize("admin", "finance_manager"), revokeAssignedFee);
 adminRouter.get("/assignedfees", protect, authorize("admin", "finance_manager"), getAssignedFees);
 
@@ -41,5 +42,7 @@ adminRouter.get("/allpayrolls", protect, authorize("admin", "finance_manager"), 
 adminRouter.put("/uppayroll/:payroll_id", protect, authorize("admin", "finance_manager"), updatePayroll);
 adminRouter.post("/pay/:payroll_id", protect, authorize("admin", "finance_manager"), payPayroll);
 
+adminRouter.get("/expenses", protect, authorize("admin", "finance_manager"), getAllExpenses);
+adminRouter.put("/expenses/:id/status", protect, authorize("admin", "finance_manager"), updateExpenseStatus);
 
 export default adminRouter;

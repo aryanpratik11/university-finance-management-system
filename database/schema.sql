@@ -36,10 +36,13 @@ CREATE TABLE grants (
   faculty_id INTEGER REFERENCES users(id),
   amount NUMERIC(12,2) NOT NULL,
   funding_agency VARCHAR(150),
+  title VARCHAR(200),
+  description TEXT,
   start_date DATE,
   end_date DATE,
-  status VARCHAR(30), -- pending/active/closed
-  recorded_by INTEGER REFERENCES users(id)
+  status VARCHAR(30) DEFAULT 'pending',
+  recorded_by INTEGER REFERENCES users(id),
+  recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE expenses (
@@ -47,11 +50,15 @@ CREATE TABLE expenses (
   department_id INTEGER REFERENCES departments(id),
   amount NUMERIC(12,2) NOT NULL,
   description TEXT,
-  status VARCHAR(30) DEFAULT 'pending', -- pending/approved/rejected
+  receipt_url TEXT,
+  status VARCHAR(30) DEFAULT 'pending_dept', 
   submitted_by INTEGER REFERENCES users(id),
-  approved_by INTEGER REFERENCES users(id),
+  dept_approved_by INTEGER REFERENCES users(id),
+  finance_approved_by INTEGER REFERENCES users(id),
   submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  approved_at TIMESTAMP
+  dept_approved_at TIMESTAMP,
+  finance_approved_at TIMESTAMP,
+  refunded_at TIMESTAMP
 );
 
 CREATE TABLE payroll (

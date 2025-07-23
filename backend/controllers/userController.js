@@ -26,6 +26,8 @@ export const loginUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                department_id: user.department_id,
+                is_active: user.is_active,
                 ...(student_id && { student_id }),
             },
         });
