@@ -47,6 +47,18 @@ export default function CategoryUsers() {
     }
   };
 
+  const toggleUserActive = async (userId, newStatus) => {
+    try {
+      await api.patch(`/users/active/${userId}`, { is_active: newStatus });
+      alert(`User has been ${newStatus ? "activated" : "deactivated"}`);
+      fetchUsers();
+    } catch (err) {
+      console.error("Failed to toggle user status:", err);
+      alert("Error updating status");
+    }
+  };
+
+
   const groupedUsers = users.reduce((acc, user) => {
     const role = user.role.toLowerCase();
     if (!acc[role]) acc[role] = [];
@@ -128,14 +140,19 @@ export default function CategoryUsers() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          user.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                        }`}>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                          }`}>
                           {user.is_active ? "Active" : "Inactive"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-4">
+                          <button
+                            onClick={() => handleDelete(user.id)}
+                            className="text-red-600 hover:text-red-800 transition-colors"
+                          >
+                            <i className="fas fa-trash-alt"></i> Delete
+                          </button>
                           <button
                             onClick={() => {
                               setSelectedUser(user);
@@ -146,10 +163,13 @@ export default function CategoryUsers() {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(user.id)}
-                            className="text-red-600 hover:text-red-800 transition-colors"
+                            onClick={() => toggleUserActive(user.id, !user.is_active)}
+                            className={`${user.is_active
+                              ? 'text-yellow-800 hover:text-yellow-900'
+                              : 'text-green-800 hover:text-green-900'
+                              }`}
                           >
-                            Delete
+                            {user.is_active ? "Deactivate" : "Activate Again"}
                           </button>
                         </div>
                       </td>

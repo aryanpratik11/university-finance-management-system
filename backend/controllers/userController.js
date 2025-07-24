@@ -94,6 +94,31 @@ export const getAllUsers = async (req, res) => {
     res.json(rows);
 };
 
+export const toggleUserActiveStatus = async (req, res) => {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    if (typeof is_active !== 'boolean') {
+        return res.status(400).json({ error: "is_active must be a boolean" });
+    }
+
+    try {
+        const result = await pool.query(
+            'UPDATE users SET is_active = $1 WHERE id = $2 RETURNING *',
+            [is_active, id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        return res.json({ message: 'User status updated', user: result.rows[0] });
+    } catch (err) {
+        console.error('Error updating user active status:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 export const addUsersBulk = async (req, res) => {
     const client = await pool.connect();
     try {

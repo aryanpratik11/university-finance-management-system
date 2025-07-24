@@ -256,7 +256,6 @@ export const getAssignedFees = async (req, res) => {
   }
 };
 
-
 export const getStudentFees = async (req, res) => {
   const { id } = req.params;
   try {

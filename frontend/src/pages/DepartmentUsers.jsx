@@ -44,7 +44,17 @@ export default function DepartmentUsers() {
     }
   };
 
-  // Group users by role
+  const toggleUserActive = async (userId, newStatus) => {
+    try {
+      await api.patch(`/users/active/${userId}`, { is_active: newStatus });
+      alert(`User has been ${newStatus ? "activated" : "deactivated"}`);
+      fetchUsers(); // Refresh table after update
+    } catch (err) {
+      console.error("Failed to toggle user status:", err);
+      alert("Error updating status");
+    }
+  };
+
   const groupedUsers = users.reduce(
     (acc, user) => {
       const role = user.role.toLowerCase();
@@ -211,17 +221,22 @@ export default function DepartmentUsers() {
                         )}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              user.is_active
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_active
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                              }`}
                           >
                             {user.is_active ? "Active" : "Inactive"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-4">
+                            <button
+                              onClick={() => handleDelete(user.id)}
+                              className="text-red-600 hover:text-red-800 transition-colors"
+                            >
+                              Delete
+                            </button>
                             <button
                               onClick={() => {
                                 setSelectedUser(user);
@@ -232,11 +247,12 @@ export default function DepartmentUsers() {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDelete(user.id)}
+                              onClick={() => toggleUserActive(user.id, !user.is_active)}
                               className="text-red-600 hover:text-red-800 transition-colors"
                             >
-                              Delete
+                              {user.is_active ? "Deactivate" : "Activate"}
                             </button>
+
                           </div>
                         </td>
                       </tr>

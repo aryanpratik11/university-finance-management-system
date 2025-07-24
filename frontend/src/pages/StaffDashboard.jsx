@@ -17,7 +17,7 @@ export default function StaffDashboard() {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const res = await api.get("/staff/payroll/${user.id}"); // ✅ Corrected line
+                const res = await api.get("/staff/payroll/${user.id}");
                 const payrollData = res.data?.payroll || [];
                 setPayroll(payrollData);
 
@@ -147,7 +147,7 @@ export default function StaffDashboard() {
                                                 {p.month}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                ₹{p.amount.toLocaleString()}
+                                                ₹{(p.amount || 0).toLocaleString()}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {p.paid_on ? format(new Date(p.paid_on), "dd MMM yyyy") : "-"}

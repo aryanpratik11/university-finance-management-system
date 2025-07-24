@@ -67,8 +67,12 @@ export default function FeeManagementPage() {
       setStudents(studentRes.data);
       setAssignedFees(assignRes.data);
       setTransactions(txnRes.data);
+      console.log(feeRes.data);
+      console.log(studentRes.data);
       console.log(assignRes.data);
+      console.log(txnRes.data);
     } catch (err) {
+      console.log(err);
       setError("Failed to fetch critical data. Please refresh the page.");
     } finally {
       setLoading(false);

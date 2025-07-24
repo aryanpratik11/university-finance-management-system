@@ -11,7 +11,7 @@ import { addIncomeSource, getAllIncomeSources } from "../controllers/incomeContr
 const adminRouter = express.Router();
 
 adminRouter.post("/adduser", protect, authorize("admin"), registerUser);
-adminRouter.get("/allusers", protect, authorize("admin"), getAllUsers);
+adminRouter.get("/allusers", protect, authorize("admin", "finance_manager"), getAllUsers);
 adminRouter.post("/adduser/bulk", protect, authorize("admin"), addUsersBulk);
 adminRouter.put("/upuser/:id", protect, authorize("admin"), updateUser);
 adminRouter.delete("/deluser/:id", protect, authorize("admin"), deleteUser);
@@ -21,7 +21,7 @@ adminRouter.get("/alldepartments", getAllDepartment);
 adminRouter.get("/departments/:id", protect, authorize("admin"), getDepartmentById);
 
 adminRouter.post("/addfee", protect, authorize("admin", "finance_manager"), addFeeStructure);
-adminRouter.get("/allfee", getFeeStructures);
+adminRouter.get("/allfee", protect, authorize("admin", "finance_manager"), getFeeStructures);
 adminRouter.put("/upfee/:id", protect, authorize("admin", "finance_manager"), upFeeStructure);
 adminRouter.delete("/delfee/:id", protect, authorize("admin", "finance_manager"), deleteFeeStructure);
 
@@ -47,8 +47,8 @@ adminRouter.post("/pay/:payroll_id", protect, authorize("admin", "finance_manage
 adminRouter.get("/expenses", protect, authorize("admin", "finance_manager"), getAllExpenses);
 adminRouter.put("/expenses/:id/status", protect, authorize("admin", "finance_manager"), updateExpenseStatus);
 
-adminRouter.put("/budgets", protect, authorize("admin"), allocateDepartmentBudget);
-adminRouter.get("/budgets", protect, authorize("admin"), getAllDepartmentBudgets);
+adminRouter.put("/budgets", protect, authorize("admin", "finance_manager"), allocateDepartmentBudget);
+adminRouter.get("/budgets", protect, authorize("admin", "finance_manager"), getAllDepartmentBudgets);
 adminRouter.get("/budget-summary", getDepartmentBudgetSummary);
 
 adminRouter.get("/available-balance", protect, authorize("admin", "finance_manager"), getAvailableFunds);
