@@ -1,6 +1,6 @@
 import express from "express";
 import { protect, authorize } from "../middleware/auth.js";
-import { addUsersBulk, deleteUser, filterUsers, getAllDepartment, getAllUsers, getDepartmentById, registerUser, updateUser } from "../controllers/userController.js";
+import { addUsersBulk, deactivateBatch, deleteUser, filterUsers, getAllBatches, getAllDepartment, getAllUsers, getDepartmentById, registerUser, toggleUserActiveStatus, updateUser } from "../controllers/userController.js";
 import { addFeeStructure, assignFeeBulk, assignFeeList, assignFeeSt, deleteFeeStructure, getAllTransactions, getAssignedFees, getFeeStructures, getStudentFees, getStudentTransactions, recordTransaction, revokeAssignedFee, updateStudentFee, upFeeStructure } from "../controllers/feeController.js";
 import { approveTransaction } from "../controllers/paymentController.js";
 import { generatePayrollsCurrentMonth, getAllPayrolls, payPayroll, updatePayroll } from "../controllers/payrollController.js";
@@ -16,6 +16,10 @@ adminRouter.post("/adduser/bulk", protect, authorize("admin"), addUsersBulk);
 adminRouter.put("/upuser/:id", protect, authorize("admin"), updateUser);
 adminRouter.delete("/deluser/:id", protect, authorize("admin"), deleteUser);
 adminRouter.get("/users/filter", protect, authorize("admin"), filterUsers);
+
+adminRouter.get("/batches", getAllBatches);
+adminRouter.patch('/active/:id', protect, authorize("admin"), toggleUserActiveStatus);
+adminRouter.patch("/activebatch/:batch", protect, authorize("admin"), deactivateBatch);
 
 adminRouter.get("/alldepartments", getAllDepartment);
 adminRouter.get("/departments/:id", protect, authorize("admin"), getDepartmentById);

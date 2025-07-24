@@ -119,6 +119,48 @@ export const toggleUserActiveStatus = async (req, res) => {
     }
 };
 
+export const getAllBatches = async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT DISTINCT batch FROM students ORDER BY batch DESC`
+        );
+        const batches = result.rows.map(row => row.batch);
+        res.status(200).json(batches);
+    } catch (error) {
+        console.error("Error fetching batches:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const deactivateBatch = async (req, res) => {
+    const { batch } = req.params;
+
+    if (!batch) {
+        return res.status(400).json({ error: "Batch is required" });
+    }
+
+    try {
+        const result = await pool.query(
+            `
+      UPDATE users
+      SET is_active = FALSE
+      WHERE id IN (
+        SELECT user_id FROM students WHERE batch = $1
+      );
+      `,
+            [batch]
+        );
+
+        res.status(200).json({
+            message: `Deactivated users from batch ${batch}`,
+            updated: result.rowCount,
+        });
+    } catch (error) {
+        console.error("Error deactivating batch:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 export const addUsersBulk = async (req, res) => {
     const client = await pool.connect();
     try {

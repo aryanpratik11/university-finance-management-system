@@ -46,7 +46,7 @@ export default function DepartmentUsers() {
 
   const toggleUserActive = async (userId, newStatus) => {
     try {
-      await api.patch(`/users/active/${userId}`, { is_active: newStatus });
+      await api.patch(`/admin/active/${userId}`, { is_active: newStatus });
       alert(`User has been ${newStatus ? "activated" : "deactivated"}`);
       fetchUsers(); // Refresh table after update
     } catch (err) {
