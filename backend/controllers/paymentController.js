@@ -90,18 +90,19 @@ export const verifyPayment = async (req, res) => {
 };
 
 export const approveTransaction = async (req, res) => {
+  const client = await pool.connect();
   try {
     const { transaction_id, admin_user_id } = req.body;
 
-    console.log("🧾 Incoming Approval Request:");
-    console.log("transaction_id:", transaction_id);
-    console.log("admin_user_id:", admin_user_id);
-
     if (!transaction_id || !admin_user_id) {
-      console.log("❌ Missing required fields.");
+      console.log("Missing required fields.");
       return res.status(400).json({ error: "Missing required fields." });
     }
 
+    // Begin transaction
+    await client.query("BEGIN");
+
+    // Step 1: Approve the transaction
     const approveQuery = `
       UPDATE transactions
       SET status = 'success',
@@ -110,16 +111,17 @@ export const approveTransaction = async (req, res) => {
       WHERE id = $2
       RETURNING student_fee_record_id, amount
     `;
-
-    const { rows } = await pool.query(approveQuery, [admin_user_id, transaction_id]);
+    const { rows } = await client.query(approveQuery, [admin_user_id, transaction_id]);
 
     if (rows.length === 0) {
       console.log("❌ Transaction not found in DB.");
+      await client.query("ROLLBACK");
       return res.status(404).json({ error: "Transaction not found" });
     }
 
-    const { student_fee_record_id } = rows[0];
+    const { student_fee_record_id, amount } = rows[0];
 
+    // Step 2: Mark fee record as paid (if amount criteria is met)
     const markPaidQuery = `
       UPDATE student_fee_records
       SET status = 'paid'
@@ -130,13 +132,26 @@ export const approveTransaction = async (req, res) => {
           WHERE id = student_fee_records.fee_structure_id
         )
     `;
-    await pool.query(markPaidQuery, [student_fee_record_id]);
+    await client.query(markPaidQuery, [student_fee_record_id]);
 
-    console.log("✅ Transaction approved successfully.");
-    return res.status(200).json({ message: "Transaction approved and status updated" });
+    // Step 3: Add transaction amount to finance_balance
+    const updateBalanceQuery = `
+      UPDATE finance_balance
+      SET total_amount = total_amount + $1
+    `;
+    await client.query(updateBalanceQuery, [amount]);
+
+    // Commit transaction
+    await client.query("COMMIT");
+
+    console.log("✅ Transaction approved and balance updated.");
+    return res.status(200).json({ message: "Transaction approved and balance updated" });
 
   } catch (error) {
+    await client.query("ROLLBACK");
     console.error("🔥 Admin approval failed:", error);
     return res.status(500).json({ error: "Internal server error" });
+  } finally {
+    client.release();
   }
 };

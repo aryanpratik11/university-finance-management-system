@@ -15,6 +15,8 @@ import DepartmentUsers from "./pages/DepartmentUsers";
 import CategoryUsers from "./pages/CategoryUser";
 import FeeManagement from "./pages/FeeManagement";
 import PayrollManagement from "./pages/PayrollManagement";
+import BudgetManagement from "./pages/BudgetManagement";
+import IncomeManagement from "./pages/IncomeManagement";
 
 function App() {
   return (
@@ -38,6 +40,8 @@ function App() {
             <Route path="/administration-users" element={<CategoryUsers />} />
             <Route path="/others-users" element={<CategoryUsers />} />
             <Route path="/admin/staff" element={<PayrollManagement />} />
+            <Route path="/admin/budgets" element={<BudgetManagement />} />
+            <Route path="/admin/income" element={<IncomeManagement />} />
           </Routes>
         </main>
       </div>

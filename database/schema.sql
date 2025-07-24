@@ -10,25 +10,15 @@ CREATE TABLE users (
 CREATE TABLE departments (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
-  budget NUMERIC(15,2) DEFAULT 0,
   head_id INTEGER REFERENCES users(id)
 );
 
 CREATE TABLE students (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id) UNIQUE, -- One-to-one
+  user_id INTEGER REFERENCES users(id) UNIQUE,
   enrollment_no VARCHAR(50) UNIQUE,
   program VARCHAR(100),
   batch INTEGER
-);
-
-CREATE TABLE donations (
-  id SERIAL PRIMARY KEY,
-  donor_id INTEGER REFERENCES users(id),
-  amount NUMERIC(12,2) NOT NULL,
-  date DATE DEFAULT CURRENT_DATE,
-  purpose VARCHAR(255),
-  recorded_by INTEGER REFERENCES users(id)
 );
 
 CREATE TABLE grants (
@@ -128,4 +118,29 @@ CREATE TABLE student_fee_records (
     amount_paid NUMERIC(10,2) DEFAULT 0,
     due_date DATE,
     created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE department_budgets (
+  id SERIAL PRIMARY KEY,
+  department_id INTEGER REFERENCES departments(id) ON DELETE CASCADE,
+  fiscal_year VARCHAR(10) NOT NULL,
+  allocated NUMERIC(12, 2) NOT NULL,
+  spent NUMERIC(12, 2) DEFAULT 0.00,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE finance_balance (
+  id SERIAL PRIMARY KEY,
+  total_amount NUMERIC(12, 2) NOT NULL
+);
+
+CREATE TABLE income_sources (
+  id SERIAL PRIMARY KEY,
+  source_name VARCHAR(100) NOT NULL,
+  amount NUMERIC(12,2) NOT NULL,
+  received_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  description TEXT,
+  recorded_by INTEGER REFERENCES users(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -81,9 +81,17 @@ export default function FeeManagementPage() {
   }, []);
 
   useEffect(() => {
-    const totalRevenue = transactions.reduce((sum, txn) => sum + (txn.amount || 0), 0);
-    setStats({ totalRevenue, totalStudents: students.length, totalFeeStructures: feeStructures.length });
+    const totalRevenue = transactions.reduce(
+      (sum, txn) => sum + (txn.status === "success" ? parseFloat(txn.amount_paid) || 0 : 0),
+      0
+    );
+    setStats({
+      totalRevenue,
+      totalStudents: students.length,
+      totalFeeStructures: feeStructures.length
+    });
   }, [transactions, students, feeStructures]);
+
 
   useEffect(() => {
     const fetchDepartments = async () => {

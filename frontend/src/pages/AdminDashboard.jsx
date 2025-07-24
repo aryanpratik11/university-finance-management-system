@@ -41,22 +41,10 @@ export default function AdminDashboard() {
               icon: "👥",
             },
             {
-              title: "View Transactions",
-              description: "Review all financial transactions and logs",
-              link: "/admin/transactions",
-              icon: "💳",
-            },
-            {
               title: "Budget Management",
               description: "Allocate and track departmental budgets",
               link: "/admin/budgets",
               icon: "📊",
-            },
-            {
-              title: "Financial Reports",
-              description: "Generate revenue and expense reports",
-              link: "/admin/reports",
-              icon: "📈",
             },
             {
               title: "Staff Management",
@@ -69,6 +57,18 @@ export default function AdminDashboard() {
               description: "Manage student fee payments and records",
               link: "/admin/fees",
               icon: "₹",
+            },
+            {
+              title: "Other Sources of Income",
+              description: "Manage all other sources of income ",
+              link: "/admin/income",
+              icon: "💳",
+            },
+            {
+              title: "Financial Reports",
+              description: "Generate revenue and expense reports",
+              link: "/admin/reports",
+              icon: "📈",
             },
           ].map((item, index) => (
             <Link

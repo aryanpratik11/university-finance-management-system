@@ -100,50 +100,67 @@ export const payPayroll = async (req, res) => {
     const { payroll_id } = req.params;
     const paid_by = req.user.id;
 
+    const client = await pool.connect();
+
     try {
-        const result = await pool.query(
+        await client.query('BEGIN');
+
+        const result = await client.query(
             `SELECT * FROM payroll WHERE id = $1`,
             [payroll_id]
         );
 
         if (result.rowCount === 0) {
+            await client.query('ROLLBACK');
             return res.status(404).json({ error: "Payroll record not found" });
         }
 
         const payroll = result.rows[0];
 
         if (payroll.status === "paid") {
+            await client.query('ROLLBACK');
             return res.status(400).json({ error: "Payroll already paid" });
         }
 
-        const updateRes = await pool.query(
+        const updateRes = await client.query(
             `UPDATE payroll
-       SET status = 'paid',
-           paid_on = CURRENT_DATE,
-           paid_by = $1,
-           updated_at = NOW()
-       WHERE id = $2
-       RETURNING *`,
+             SET status = 'paid',
+                 paid_on = CURRENT_DATE,
+                 paid_by = $1,
+                 updated_at = NOW()
+             WHERE id = $2
+             RETURNING *`,
             [paid_by, payroll_id]
         );
 
+        await client.query(
+            `UPDATE finance_balance
+             SET total_amount = total_amount - $1`,
+            [payroll.amount]
+        );
+
+        await client.query('COMMIT');
+
         return res.status(200).json({
-            message: "Payroll marked as paid",
+            message: "Payroll marked as paid and amount deducted",
             payroll: updateRes.rows[0],
         });
 
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error("Payroll payment error:", err);
         return res.status(500).json({ error: "Server error during payroll payment" });
+    } finally {
+        client.release();
     }
 };
 
 export const getPayrollForUser = async (req, res) => {
-  const userId = req.user.id;
+    const userId = req.user.id;
 
-  try {
-    const result = await pool.query(
-      `SELECT 
+    try {
+        const result = await pool.query(
+            `SELECT 
          id, 
          month, 
          amount, 
@@ -156,13 +173,13 @@ export const getPayrollForUser = async (req, res) => {
        FROM payroll
        WHERE staff_id = $1
        ORDER BY month DESC`,
-      [userId]
-    );
+            [userId]
+        );
 
-    res.json({ payroll: result.rows });
-  } catch (err) {
-    console.error("Error fetching payroll for user:", err);
-    res.status(500).json({ message: "Failed to fetch payroll records." });
-  }
+        res.json({ payroll: result.rows });
+    } catch (err) {
+        console.error("Error fetching payroll for user:", err);
+        res.status(500).json({ message: "Failed to fetch payroll records." });
+    }
 };
 

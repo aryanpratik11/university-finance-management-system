@@ -5,6 +5,8 @@ import { addFeeStructure, assignFeeBulk, assignFeeList, assignFeeSt, deleteFeeSt
 import { approveTransaction } from "../controllers/paymentController.js";
 import { generatePayrollsCurrentMonth, getAllPayrolls, payPayroll, updatePayroll } from "../controllers/payrollController.js";
 import { getAllExpenses, updateExpenseStatus } from "../controllers/expenseController.js";
+import { allocateDepartmentBudget, getAllDepartmentBudgets, getAvailableFunds, getDepartmentBudgetSummary, upsertAvailableFund } from "../controllers/budgetController.js";
+import { addIncomeSource, getAllIncomeSources } from "../controllers/incomeController.js";
 
 const adminRouter = express.Router();
 
@@ -44,5 +46,15 @@ adminRouter.post("/pay/:payroll_id", protect, authorize("admin", "finance_manage
 
 adminRouter.get("/expenses", protect, authorize("admin", "finance_manager"), getAllExpenses);
 adminRouter.put("/expenses/:id/status", protect, authorize("admin", "finance_manager"), updateExpenseStatus);
+
+adminRouter.put("/budgets", protect, authorize("admin"), allocateDepartmentBudget);
+adminRouter.get("/budgets", protect, authorize("admin"), getAllDepartmentBudgets);
+adminRouter.get("/budget-summary", getDepartmentBudgetSummary);
+
+adminRouter.get("/available-balance", protect, authorize("admin", "finance_manager"), getAvailableFunds);
+adminRouter.post("/available-balance", protect, authorize("admin", "finance_manager"), upsertAvailableFund);
+
+adminRouter.post("/income", protect, authorize("admin", "finance_manager"), addIncomeSource);
+adminRouter.get("/allincomes", protect, authorize("admin", "finance_manager"), getAllIncomeSources);
 
 export default adminRouter;

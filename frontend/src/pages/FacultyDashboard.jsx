@@ -89,7 +89,7 @@ export default function FacultyDashboard() {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h3 className="text-sm font-medium text-gray-500">Total Salary</h3>
             <p className="mt-2 text-3xl font-bold text-blue-900">
-              ₹{(data.payroll?.reduce((sum, p) => sum + p.amount, 0) || 0).toLocaleString()}
+              ₹{(data.payroll?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0).toLocaleString("en-IN")}
             </p>
             <p className="text-sm text-gray-500 mt-1">
               {data.payroll.length} payments received

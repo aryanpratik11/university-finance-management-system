@@ -7,7 +7,7 @@ import UserFormModal from "../components/UserFormModal.jsx";
 export default function Users() {
     const { authState } = useContext(AuthContext);
     const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [selectedUser, setSelectedUser] = useState(null);
     const [showAdd, setShowAdd] = useState(false);
