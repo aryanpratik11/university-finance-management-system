@@ -6,7 +6,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
 
-  const serverUrl = "https://your-backend-service.onrender.com";
+  const serverUrl = "https://ufm-backend.onrender.com/";
 
   // Load token and user on app start
   useEffect(() => {
