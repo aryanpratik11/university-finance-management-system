@@ -80,9 +80,11 @@ university-finance-management-system/
 ├── .env                     # Environment variables
 └── README.md                # Project documentation
 
+```
+
 ---
 
-## 📦 Setup Instructions
+### 📦 Setup Instructions
 
 ### 1️⃣ Backend
 
