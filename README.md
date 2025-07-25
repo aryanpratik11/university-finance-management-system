@@ -4,6 +4,16 @@ A full-stack web application to manage and streamline university financial opera
 
 ---
 
+## Deployment
+
+**Frontend**: [[https://stayfinder-prototype.onrender.com](https://acadmivault-ufm.onrender.com)]
+
+**Backend**: hosted on Render
+
+**Database**: hosted on Superbase
+
+---
+
 ## 🚀 Features
 
 ### 👨‍🎓 Student Module
@@ -46,19 +56,58 @@ A full-stack web application to manage and streamline university financial opera
 university-finance-management-system/
 │
 ├── backend/
-│   ├── controllers/         # Business logic
-│   ├── routes/              # Express route definitions
-│   ├── models/              # DB schema queries
-│   ├── db/                  # DB connection using Supabase
-│   └── index.js             # Express server setup
+│   ├── config/             # DB connection
+│   ├── controllers/        # Logic for each route
+│   ├── routes/             # Express route definitions
+│   ├── middleware/         # Auth
+│   └── index.js            # Express server entry point
+│
+├── database/
+│   ├── schema.sql          # PostgreSQL schema definition
 │
 ├── frontend/
+│   ├── public/
+│   │   ├── index.html      # Root HTML file
 │   ├── src/
-│   │   ├── pages/           # Dashboard views
-│   │   ├── components/      # Reusable UI
-│   │   ├── context/         # Auth + global state
-│   │   └── App.jsx          # Main component tree
-│   └── vite.config.js       # Vite config
+│   │   ├── pages/          # Dashboard & view pages
+│   │   ├── components/     # UI components
+│   │   ├── context/        # Auth + global state
+│   │   ├── utils/          # Utility functions (e.g., loadRazorpay) 
+│   │   └── App.js          # Main component tree
+│   │   └── api.js          # Axios config for API calls
+│   │   └── index.js        # Entry point for React app
 │
 ├── .env                     # Environment variables
 └── README.md                # Project documentation
+
+---
+
+## 📦 Setup Instructions
+
+### 1️⃣ Backend
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+### 2️⃣ Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## ⚠️ Disclaimer: Supabase Usage
+
+This project uses **Supabase** (free tier) for database hosting to simplify deployment.
+
+### Limitations:
+- Limited concurrent connections (may affect multiple users).
+- Rate limits on high-volume requests.
+- Slight latency under load.
+- Uses **Supavisor** (session pooler) to reduce connection issues.
