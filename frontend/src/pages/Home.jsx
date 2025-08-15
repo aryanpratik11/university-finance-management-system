@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-export default function Home() {
+export default function Home({ deferredPrompt, handleInstallClick }) {
   // Floating animation variants
   const floatVariants = {
     float: {
@@ -55,7 +55,15 @@ export default function Home() {
             >
               Live Demo
             </Link>
+            {deferredPrompt && (
+              <button
+                onClick={handleInstallClick}
+                className="px-2.5 py-3.5 bg-green-500 text-white font-medium rounded-lg shadow-lg hover:bg-green-600 transition-all duration-300 text-m"
+              > Install App
+              </button>
+            )}
           </div>
+
         </div>
       </section>
 
